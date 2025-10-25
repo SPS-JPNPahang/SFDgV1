@@ -107,39 +107,7 @@
     </div>
 
     <div class="modal fade" id="signer-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="signer-title">Tandatangan Dokumen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="signer-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
-                        <div>
-                            <button class="btn btn-outline-secondary" id="prev-page"><i class="bi bi-arrow-left"></i></button>
-                            <span class="ms-2 me-2">Muka Surat: <span id="page-num"></span> / <span id="page-count"></span></span>
-                            <button class="btn btn-outline-secondary" id="next-page"><i class="bi bi-arrow-right"></i></button>
-                        </div>
-                        <div>
-                            <button class="btn btn-success" id="place-signature-button"><i class="bi bi-pencil-fill"></i> Letak Tandatangan</button>
-                            <button class="btn btn-info" id="clear-signature-button"><i class="bi bi-arrow-clockwise"></i> Lukis Semula</button>
-                        </div>
-                    </div>
-                    <div id="signature-pad-container" class="mb-2 p-3 border rounded bg-light">
-                        <h6 class="text-center">Sila lukis tandatangan anda di kotak bawah:</h6>
-                        <canvas id="signature-canvas" class="border"></canvas>
-                    </div>
-                    <div id="pdf-render-container">
-                        <canvas id="pdf-canvas" class="border w-100"></canvas>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" id="save-signature-button">Simpan & Selesai</button>
-                </div>
-            </div>
         </div>
-    </div>
 
     <div id="loading-spinner" class="loading-overlay d-none">
         <div class="spinner-border text-primary" role="status">
@@ -158,64 +126,156 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
 
-        // ==================================================
-        // KONFIGURASI FIREBASE ANDA (DARI FASA 19)
-        // ==================================================
+        console.log("Firebase Module Script Loaded - Fasa 23"); // <-- LOG ASAS 1
+
+        // Konfigurasi Firebase Anda
         const firebaseConfig = {
-          apiKey: "AIzaSyBxKAyqxJt-4u9MjXCdondOdu4l53WRYn4", // <-- DIMASUKKAN
-          authDomain: "sfdg-app.firebaseapp.com",       // <-- DIMASUKKAN
-          projectId: "sfdg-app",                   // <-- DIMASUKKAN
-          storageBucket: "sfdg-app.appspot.com", // <-- Betulkan jika perlu
-          messagingSenderId: "724667320333",       // <-- DIMASUKKAN
-          appId: "1:724667320333:web:cd19e8d7b262eeb7d7ed44" // <-- DIMASUKKAN
+          apiKey: "AIzaSyBxKAyqxJt-4u9MjXCdondOdu4l53WRYn4",
+          authDomain: "sfdg-app.firebaseapp.com",
+          projectId: "sfdg-app",
+          storageBucket: "sfdg-app.appspot.com",
+          messagingSenderId: "724667320333",
+          appId: "1:724667320333:web:cd19e8d7b262eeb7d7ed44"
         };
 
         // Inisialisasi Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app); // Dapatkan instance Authentication
+        let app;
+        let auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            console.log("Firebase Initialized Successfully - Fasa 23"); // <-- LOG ASAS 2
+        } catch (error) {
+            console.error("Firebase Initialization Failed:", error); // <-- LOG Ralat Firebase Init
+            alert("Ralat kritikal semasa memulakan Firebase. Sila semak Console.");
+        }
 
-        // ==================================================
-        // KOD APLIKASI SFDg (JavaScript)
-        // ==================================================
-        document.addEventListener("DOMContentLoaded", () => {
 
-            // URL API Apps Script Anda (URL BARU jika anda deploy ID baru)
-            const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzHnG30XyNX-HOC_1iJn5TarLpUgrcX46mhGrJSXiy6xZwuBIQjbzO66bWkFaqGkULHWg/exec";
+        // Hanya jalankan kod aplikasi jika Firebase berjaya dimulakan
+        if (app && auth) {
+            document.addEventListener("DOMContentLoaded", () => {
+                console.log("DOMContentLoaded event fired - Fasa 23"); // <-- LOG ASAS 3
 
-            let userSession = { token: null, nama: null, peranan: null, email: null, firebaseToken: null };
-            const signerState = { pdfDoc: null, currentPageNum: 1, pdfLibDoc: null, originalPdfBytes: null, signaturePad: null, signatureImage: null, currentSuratId: null, pdfCanvas: document.getElementById("pdf-canvas"), sigCanvas: document.getElementById("signature-canvas"), placement: null };
-            const signerModal = new bootstrap.Modal(document.getElementById("signer-modal"));
-            const loginContainer = document.getElementById("login-container");
-            const appContainer = document.getElementById("app-container");
-            const loadingSpinner = document.getElementById("loading-spinner");
+                const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzHnG30XyNX-HOC_1iJn5TarLpUgrcX46mhGrJSXiy6xZwuBIQjbzO66bWkFaqGkULHWg/exec";
+                let userSession = { token: null, nama: null, peranan: null, email: null, firebaseToken: null };
+                const signerState = { pdfDoc: null, currentPageNum: 1, pdfLibDoc: null, originalPdfBytes: null, signaturePad: null, signatureImage: null, currentSuratId: null, pdfCanvas: document.getElementById("pdf-canvas"), sigCanvas: document.getElementById("signature-canvas"), placement: null };
+                const signerModal = new bootstrap.Modal(document.getElementById("signer-modal"));
+                const loginContainer = document.getElementById("login-container");
+                const appContainer = document.getElementById("app-container");
+                const loadingSpinner = document.getElementById("loading-spinner");
 
-            onAuthStateChanged(auth, async (user) => { /* ... kod sama seperti Fasa 20 ... */ });
-            function showLogin() { /* ... kod sama seperti Fasa 20 ... */ }
-            function showApp() { /* ... kod sama seperti Fasa 20 ... */ }
-            function setupTabs() { /* ... kod sama seperti Fasa 20 ... */ }
-            function switchTab(tabId) { /* ... kod sama seperti Fasa 20 ... */ }
-            async function apiCall(action, payload = {}) { /* ... kod sama seperti Fasa 20 ... */ }
-            function showLoading(show) { /* ... kod sama seperti Fasa 20 ... */ }
-            function fileToBase64(file) { /* ... kod sama seperti Fasa 20 ... */ }
-            document.getElementById("login-form").addEventListener("submit", async (e) => { /* ... kod sama seperti Fasa 20 ... */ });
-            document.getElementById("logout-button").addEventListener("click", async () => { /* ... kod sama seperti Fasa 20 ... */ });
-            function handleLogout() { /* ... kod sama seperti Fasa 20 ... */ }
-            async function loadHantarSuratForm() { /* ... kod sama seperti Fasa 20 ... */ }
-            document.getElementById("hantar-surat-form").addEventListener("submit", async (e) => { /* ... kod sama seperti Fasa 20 ... */ });
-            async function loadDataTab() { /* ... kod sama seperti Fasa 20 ... */ }
-            async function loadSuratUntukDitandatangani() { /* ... kod sama seperti Fasa 20 ... */ }
-            async function bukaPenandaTangan(suratId, fileId) { /* ... kod sama seperti Fasa 20 ... */ }
-            async function renderPDFPage(num) { /* ... kod sama seperti Fasa 20 ... */ }
-            document.getElementById("prev-page").addEventListener("click", () => { /* ... kod sama seperti Fasa 20 ... */ });
-            document.getElementById("next-page").addEventListener("click", () => { /* ... kod sama seperti Fasa 20 ... */ });
-            document.getElementById("clear-signature-button").addEventListener("click", () => { /* ... kod sama seperti Fasa 20 ... */ });
-            document.getElementById("place-signature-button").addEventListener("click", () => { /* ... kod sama seperti Fasa 20 ... */ });
-            signerState.pdfCanvas.addEventListener("click", async (e) => { /* ... kod sama seperti Fasa 20 ... */ });
-            document.getElementById("save-signature-button").addEventListener("click", async () => { /* ... kod sama seperti Fasa 20 ... */ });
-            document.querySelectorAll(".app-tab").forEach(tab => { /* ... kod sama seperti Fasa 20 ... */ });
+                // --- onAuthStateChanged DENGAN LOG ---
+                onAuthStateChanged(auth, async (user) => {
+                    console.log("onAuthStateChanged triggered. User:", user ? user.email : 'null'); // <-- LOG 1
+                    showLoading(true);
+                    if (user) {
+                        console.log("Firebase user detected:", user.email); // <-- LOG 2
+                        try {
+                            console.log("Getting Firebase ID Token..."); // <-- LOG 3
+                            const idToken = await getIdToken(user, true); // Dapatkan/Refresh ID Token
+                            console.log("Firebase ID Token obtained."); // <-- LOG 4
+                            userSession.firebaseToken = idToken;
+                            userSession.email = user.email;
 
-             // Mulakan aplikasi (onAuthStateChanged akan dipanggil secara automatik)
-        });
+                            console.log("Calling API action: getUserData for email:", user.email); // <-- LOG 5
+                            const appData = await apiCall("getUserData", { email: user.email }); // Hantar e-mel dalam body juga
+                            console.log("API response received for getUserData:", appData); // <-- LOG 6
+
+                            if (appData.status === "success") {
+                                userSession.nama = appData.nama;
+                                userSession.peranan = appData.peranan;
+                                sessionStorage.setItem("sfdg_session", JSON.stringify(userSession));
+                                console.log("User session updated:", userSession); // <-- LOG 7
+                                showApp();
+                            } else {
+                                throw new Error(appData.message || "Gagal mendapatkan data pengguna dari API.");
+                            }
+                        } catch (error) {
+                            console.error("Auth State/API Error inside onAuthStateChanged:", error); // <-- LOG Ralat 1
+                            alert(`Ralat pengesahan atau data pengguna: ${error.message}`);
+                            handleLogout(); // Log keluar jika gagal
+                        }
+                    } else {
+                        console.log("No Firebase user detected, calling handleLogout."); // <-- LOG 8
+                        handleLogout();
+                    }
+                    showLoading(false);
+                });
+
+                // --- Fungsi log masuk DENGAN LOG ---
+                 try {
+                     const loginForm = document.getElementById("login-form");
+                     if (loginForm) {
+                         console.log("Attaching submit listener to login-form - Fasa 23"); // <-- LOG ASAS 4
+                         loginForm.addEventListener("submit", async (e) => {
+                             console.log("Login form submitted - Fasa 23"); // <-- LOG ASAS 5
+                             e.preventDefault();
+                             const email = document.getElementById("login-email").value;
+                             const password = document.getElementById("password").value;
+                             const errorEl = document.getElementById("login-error");
+                             errorEl.classList.add('d-none');
+
+                             showLoading(true);
+                             try {
+                                 console.log("Calling Firebase signInWithEmailAndPassword... - Fasa 23"); // <-- LOG ASAS 6
+                                 await signInWithEmailAndPassword(auth, email, password);
+                                 console.log("Firebase signIn successful (waiting for onAuthStateChanged) - Fasa 23"); // <-- LOG ASAS 7
+                                 // Jika berjaya, onAuthStateChanged akan mengendalikan selebihnya
+                             } catch (error) {
+                                  console.error("Firebase Login Error in listener:", error); // <-- LOG Ralat Firebase Log Masuk
+                                  let message = "Log masuk gagal.";
+                                  if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                                      message = "E-mel atau kata laluan tidak sah.";
+                                  } else if (error.code === 'auth/invalid-email') {
+                                       message = "Format e-mel tidak sah.";
+                                  } else {
+                                       message = `Ralat log masuk: ${error.message}`; // Paparkan mesej Firebase sebenar
+                                  }
+                                  errorEl.textContent = message;
+                                  errorEl.classList.remove("d-none");
+                                  showLoading(false); // Pastikan spinner disembunyikan jika gagal
+                             }
+                              // Tidak perlu finally, onAuthStateChanged uruskan spinner jika berjaya
+                         });
+                         console.log("Submit listener attached successfully - Fasa 23"); // <-- LOG ASAS 8
+                     } else {
+                          console.error("Login form with id 'login-form' not found! - Fasa 23"); // <-- LOG Ralat Borang Tidak Dijumpai
+                     }
+                 } catch (listenerError) {
+                      console.error("Error attaching login listener:", listenerError); // <-- LOG Ralat Listener
+                 }
+
+
+                // ... (Salin semua kod fungsi lain dari Fasa 21 TANPA PERUBAHAN) ...
+                function showLogin() { /* ... */ }
+                function showApp() { /* ... */ }
+                function setupTabs() { /* ... */ }
+                function switchTab(tabId) { /* ... */ }
+                async function apiCall(action, payload = {}) { /* ... */ }
+                function showLoading(show) { /* ... */ }
+                function fileToBase64(file) { /* ... */ }
+                function handleLogout() { /* ... */ }
+                async function loadHantarSuratForm() { /* ... */ }
+                document.getElementById("hantar-surat-form").addEventListener("submit", async (e) => { /* ... */ });
+                async function loadDataTab() { /* ... */ }
+                async function loadSuratUntukDitandatangani() { /* ... */ }
+                async function bukaPenandaTangan(suratId, fileId) { /* ... */ }
+                async function renderPDFPage(num) { /* ... */ }
+                document.getElementById("prev-page").addEventListener("click", () => { /* ... */ });
+                document.getElementById("next-page").addEventListener("click", () => { /* ... */ });
+                document.getElementById("clear-signature-button").addEventListener("click", () => { /* ... */ });
+                document.getElementById("place-signature-button").addEventListener("click", () => { /* ... */ });
+                signerState.pdfCanvas.addEventListener("click", async (e) => { /* ... */ });
+                document.getElementById("save-signature-button").addEventListener("click", async () => { /* ... */ });
+                document.querySelectorAll(".app-tab").forEach(tab => { /* ... */ });
+                document.getElementById("logout-button").addEventListener("click", async () => { /* ... */ });
+
+                // Mulakan aplikasi (onAuthStateChanged akan dipanggil secara automatik)
+                 console.log("Initial auth state check starting..."); // Log tambahan
+
+            }); // Akhir DOMContentLoaded
+        } // Akhir if (app && auth)
+
     </script>
 </body>
 </html>
