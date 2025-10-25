@@ -11,23 +11,18 @@
     <style>
         body { background-color: #f8f9fa; }
         .app-tab {
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s ease-in-out;
+            border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out;
         }
         .app-tab.active {
-            font-weight: bold;
-            color: #0d6efd !important;
-            border-bottom-color: #0d6efd;
-            background-color: #e9f2ff;
+            font-weight: bold; color: #0d6efd !important;
+            border-bottom-color: #0d6efd; background-color: #e9f2ff;
         }
         .app-tab:hover { background-color: #eef; }
         .app-tab-content { display: none; }
         .app-tab-content.active { display: block; }
         #pdf-render-container {
-            overflow: auto;
-            max-height: 60vh;
-            text-align: center;
-            background: #525659;
+            overflow: auto; max-height: 60vh;
+            text-align: center; background: #525659;
         }
         #pdf-canvas { border: 1px solid #ccc; cursor: crosshair; }
         #signature-pad-container { text-align: center; }
@@ -52,7 +47,7 @@
                         <h2 class="text-center mb-4">Log Masuk SFDg</h2>
                         <form id="login-form">
                             <div class="mb-3">
-                                <label for="login-id" class="form-label">ID Log Masuk (E-mel atau Username)</label>
+                                <label for="login-id" class="form-label">ID Log Masuk</label>
                                 <input type="text" class="form-control" id="login-id" required />
                             </div>
                             <div class="mb-3">
@@ -78,14 +73,12 @@
                 </div>
             </div>
         </nav>
-
         <nav class="nav nav-pills flex-column flex-sm-row nav-fill mt-3 px-3" id="main-tabs">
             <a class="nav-link text-dark app-tab" href="#" id="tab-hantar" data-tab="hantar-surat-tab"><i class="bi bi-send-plus"></i> Hantar Surat</a>
             <a class="nav-link text-dark app-tab" href="#" id="tab-data" data-tab="data-tab"><i class="bi bi-folder-check"></i> Data Surat Dihantar</a>
             <a class="nav-link text-dark app-tab" href="#" id="tab-tandatangan" data-tab="tandatangan-surat-tab"><i class="bi bi-pencil-square"></i> Tandatangan Surat</a>
             <a class="nav-link text-dark app-tab" href="#" id="tab-admin" data-tab="admin-tab"><i class="bi bi-gear"></i> Admin</a>
         </nav>
-
         <main class="container-fluid mt-4">
             <div id="hantar-surat-tab" class="app-tab-content">
                 <h3>Hantar Surat Baru</h3>
@@ -109,24 +102,18 @@
                     <button type="submit" class="btn btn-primary">Hantar</button>
                 </form>
             </div>
-
             <div id="data-tab" class="app-tab-content">
                 <h3>Status Surat Dihantar</h3>
-                <div id="data-list" class="list-group">
-                    </div>
+                <div id="data-list" class="list-group"></div>
             </div>
-
             <div id="tandatangan-surat-tab" class="app-tab-content">
                 <h3>Surat Untuk Ditandatangani</h3>
-                <div id="tandatangan-list" class="list-group">
-                    </div>
+                <div id="tandatangan-list" class="list-group"></div>
             </div>
-
             <div id="admin-tab" class="app-tab-content">
                 <h3>Panel Admin</h3>
                 <p>Paparan untuk Admin akan dibina kemudian.</p>
-                <div id="admin-list">
-                    </div>
+                <div id="admin-list"></div>
             </div>
         </main>
     </div>
@@ -187,12 +174,8 @@
             // URL API ANDA DARI FASA 3
             const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz1CbZvI3kraxeUT1_d-iO27k9ZrZCEBxwQJ2I8U5wu6NDLohyIfFYFp8XToy2XPeXOXw/exec";
             
-            // Pembolehubah Sesi
-            let userSession = {
-                token: null, nama: null, peranan: null, email: null 
-            };
+            let userSession = { token: null, nama: null, peranan: null, email: null };
             
-            // Pembolehubah Penanda Tangan (Signer)
             const signerState = {
                 pdfDoc: null, currentPageNum: 1, pdfLibDoc: null, 
                 originalPdfBytes: null, signaturePad: null, signatureImage: null, 
@@ -203,7 +186,6 @@
             };
             const signerModal = new bootstrap.Modal(document.getElementById("signer-modal"));
 
-            // DOM Elements
             const loginContainer = document.getElementById("login-container");
             const appContainer = document.getElementById("app-container");
             const loadingSpinner = document.getElementById("loading-spinner");
@@ -238,25 +220,18 @@
                 }
             }
 
-            // --- FUNGSI DIUBAHSUAI ---
             function setupTabs() {
                 const { peranan } = userSession;
                 const isPelulus = (peranan !== "Staf" && peranan !== "Admin");
                 const isStaf = (peranan === "Staf");
                 const isAdmin = (peranan === "Admin");
 
-                // Staf boleh Hantar dan lihat Data
                 document.getElementById("tab-hantar").classList.toggle("d-none", !isStaf);
                 document.getElementById("tab-data").classList.toggle("d-none", !isStaf);
-                
-                // Pelulus boleh Tandatangan
                 document.getElementById("tab-tandatangan").classList.toggle("d-none", !isPelulus);
-                
-                // Admin boleh lihat Admin
                 document.getElementById("tab-admin").classList.toggle("d-none", !isAdmin);
             }
 
-            // --- FUNGSI DIUBAHSUAI ---
             function switchTab(tabId) {
                 document.querySelectorAll(".app-tab").forEach(tab => {
                     tab.classList.toggle("active", tab.dataset.tab === tabId);
@@ -265,25 +240,22 @@
                     content.classList.toggle("active", content.id === tabId);
                 });
 
-                // Muatkan data apabila tab ditukar
                 switch (tabId) {
                     case "hantar-surat-tab":
                         loadHantarSuratForm();
                         break;
-                    // --- TAMBAH CASE BARU ---
                     case "data-tab":
                         loadDataTab();
                         break;
-                    // --- TAMAT TAMBAHAN ---
                     case "tandatangan-surat-tab":
                         loadSuratUntukDitandatangani();
                         break;
                     case "admin-tab":
-                        // loadAdminData(); 
                         break;
                 }
             }
 
+            // --- FUNGSI DIUBAHSUAI (UNTUK REDIRECT) ---
             async function apiCall(action, payload = {}) {
                 showLoading(true);
                 try {
@@ -293,7 +265,8 @@
                     const response = await fetch(GAS_API_URL, {
                         method: "POST",
                         body: JSON.stringify(requestBody),
-                        headers: { "Content-Type": "application/json" }
+                        headers: { "Content-Type": "application/json" },
+                        redirect: "follow" // <-- TAMBAHAN PEMBETULAN REDIRECT
                     });
                     if (!response.ok) throw new Error(`Ralat Rangkaian: ${response.statusText}`);
                     const result = await response.json();
@@ -327,6 +300,7 @@
             // LOGIK PENGESAHAN (Authentication Logic)
             // ==================================================
             
+            // --- FUNGSI DIUBAHSUAI (UNTUK REDIRECT) ---
             document.getElementById("login-form").addEventListener("submit", async (e) => {
                 e.preventDefault();
                 const idLogMasuk = document.getElementById("login-id").value;
@@ -340,7 +314,8 @@
                       body: JSON.stringify({
                         action: "login", idLogMasuk: idLogMasuk, password: password
                       }),
-                      headers: { "Content-Type": "application/json" }
+                      headers: { "Content-Type": "application/json" },
+                      redirect: "follow" // <-- TAMBAHAN PEMBETULAN REDIRECT
                     }).then(res => res.json());
 
                     if (result.status === "success") {
@@ -354,7 +329,8 @@
                          throw new Error(result.message);
                     }
                 } catch (error) {
-                    errorEl.textContent = error.message;
+                    errorEl.textContent = "Gagal menghubungi pelayan. Sila cuba lagi."; // Mesej lebih umum
+                    console.error("Login Error:", error);
                     errorEl.classList.remove("d-none");
                 } finally {
                     showLoading(false);
@@ -411,7 +387,7 @@
             });
 
             // ==================================================
-            // --- FUNGSI BARU UNTUK TAB DATA STAF ---
+            // LOGIK TAB 2: DATA SURAT (STAF)
             // ==================================================
             async function loadDataTab() {
                 const listEl = document.getElementById("data-list");
@@ -424,14 +400,11 @@
                         return;
                     }
                     
-                    listEl.innerHTML = ""; // Kosongkan senarai
+                    listEl.innerHTML = ""; 
                     result.surat.forEach(surat => {
                         let statusBadge, downloadButton;
                         
-                        // Cipta pautan muat turun standard Google Drive
-                        // Ini memerlukan fail di Drive anda 'shared' (cth: Anyone with the link)
-                        // atau kita perlu ubah suai API untuk 'presigned URL'.
-                        // Untuk prototaip, kita guna link terus.
+                        // Cipta pautan muat turun terus dari Google Drive
                         const downloadUrl = `https://drive.google.com/uc?export=download&id=${surat.fileIdSelesai}`;
                         
                         if (surat.status === "Selesai") {
@@ -506,7 +479,6 @@
             // ==================================================
 
             async function bukaPenandaTangan(suratId, fileId) {
-                // Reset state
                 signerState.currentSuratId = suratId;
                 signerState.currentPageNum = 1;
                 signerState.signatureImage = null; 
@@ -647,7 +619,7 @@
 
                     alert("Tandatangan berjaya disimpan!");
                     signerModal.hide();
-                    loadSuratUntukDitandatangani(); // Muat semula senarai
+                    loadSuratUntukDitandatangani();
 
                 } catch (error) {
                     alert(`Gagal menyimpan tandatangan: ${error.message}`);
