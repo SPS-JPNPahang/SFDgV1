@@ -255,7 +255,6 @@
                 }
             }
 
-            // --- FUNGSI DIUBAHSUAI (UNTUK REDIRECT) ---
             async function apiCall(action, payload = {}) {
                 showLoading(true);
                 try {
@@ -266,7 +265,7 @@
                         method: "POST",
                         body: JSON.stringify(requestBody),
                         headers: { "Content-Type": "application/json" },
-                        redirect: "follow" // <-- TAMBAHAN PEMBETULAN REDIRECT
+                        redirect: "follow" 
                     });
                     if (!response.ok) throw new Error(`Ralat Rangkaian: ${response.statusText}`);
                     const result = await response.json();
@@ -300,7 +299,6 @@
             // LOGIK PENGESAHAN (Authentication Logic)
             // ==================================================
             
-            // --- FUNGSI DIUBAHSUAI (UNTUK REDIRECT) ---
             document.getElementById("login-form").addEventListener("submit", async (e) => {
                 e.preventDefault();
                 const idLogMasuk = document.getElementById("login-id").value;
@@ -315,7 +313,7 @@
                         action: "login", idLogMasuk: idLogMasuk, password: password
                       }),
                       headers: { "Content-Type": "application/json" },
-                      redirect: "follow" // <-- TAMBAHAN PEMBETULAN REDIRECT
+                      redirect: "follow"
                     }).then(res => res.json());
 
                     if (result.status === "success") {
@@ -329,7 +327,11 @@
                          throw new Error(result.message);
                     }
                 } catch (error) {
-                    errorEl.textContent = "Gagal menghubungi pelayan. Sila cuba lagi."; // Mesej lebih umum
+                    // ==================================================
+                    // ===== INI ADALAH PEMBETULANNYA =====
+                    // ==================================================
+                    errorEl.textContent = error.message; // Tunjukkan mesej ralat sebenar
+                    // ==================================================
                     console.error("Login Error:", error);
                     errorEl.classList.remove("d-none");
                 } finally {
@@ -342,9 +344,11 @@
             function handleLogout() {
                 sessionStorage.removeItem("sfdg_session");
                 userSession = { token: null, nama: null, peranan: null, email: null };
-                checkSession();
+                checkSessio();
             }
 
+            // ... (Semua kod lain dari Fasa 11 kekal sama) ...
+            
             // ==================================================
             // LOGIK TAB 1: HANTAR SURAT (STAF)
             // ==================================================
@@ -404,7 +408,6 @@
                     result.surat.forEach(surat => {
                         let statusBadge, downloadButton;
                         
-                        // Cipta pautan muat turun terus dari Google Drive
                         const downloadUrl = `https://drive.google.com/uc?export=download&id=${surat.fileIdSelesai}`;
                         
                         if (surat.status === "Selesai") {
