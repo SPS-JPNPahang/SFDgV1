@@ -3,44 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SFDg - Sistem Fail Digital (Ringkas)</title>
+    <title>SFDg - Sistem Fail Digital (doGet/doPost)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    <style> /* ... CSS sama seperti sebelum ini ... */ </style>
+    <style> /* ... CSS sama ... */ </style>
 </head>
 <body class="bg-light">
-
-    <div id="login-container" class="container">
-        <div class="row min-vh-100 justify-content-center align-items-center">
-            <div class="col-md-5">
-                <div class="card shadow-sm">
-                    <div class="card-body p-5">
-                        <h2 class="text-center mb-4">Log Masuk SFDg</h2>
-                        <form id="login-form">
-                            <div class="mb-3">
-                                <label for="login-id" class="form-label">ID Log Masuk</label> <input type="text" class="form-control" id="login-id" required />
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Kata Laluan</label>
-                                <input type="password" class="form-control" id="password" required />
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Log Masuk</button>
-                            <div id="login-error" class="text-danger mt-3 d-none"></div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="app-container" class="d-none">
-        </div>
-
-    <div class="modal fade" id="signer-modal" tabindex="-1" aria-hidden="true">
-        </div>
-
-    <div id="loading-spinner" class="loading-overlay d-none">
-        </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -50,64 +18,58 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("DOM Ready - Versi Ringkas");
+            console.log("DOM Ready - Versi doGet/doPost");
 
             // !!! PASTIKAN URL INI MASIH URL DEPLOYMENT TERKINI ANDA !!!
             const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzHnG30XyNX-HOC_1iJn5TarLpUgrcX46mhGrJSXiy6xZwuBIQjbzO66bWkFaqGkULHWg/exec";
-            let userSession = { nama: null, peranan: null, userId: null }; // Simpan userId (IDLogMasuk)
+            let userSession = { nama: null, peranan: null, userId: null };
 
-            // ... (Pembolehubah DOM dan Signer sama seperti sebelum ini) ...
-            const signerState = { pdfDoc: null, currentPageNum: 1, pdfLibDoc: null, originalPdfBytes: null, signaturePad: null, signatureImage: null, currentSuratId: null, pdfCanvas: document.getElementById("pdf-canvas"), sigCanvas: document.getElementById("signature-canvas"), placement: null };
-            const signerModal = new bootstrap.Modal(document.getElementById("signer-modal"));
-            const loginContainer = document.getElementById("login-container");
-            const appContainer = document.getElementById("app-container");
-            const loadingSpinner = document.getElementById("loading-spinner");
+            // ... (Pembolehubah DOM dan Signer sama) ...
 
             // --- PENGURUSAN UTAMA ---
-            function checkSession() { // Semak sesi dari sessionStorage
-                const session = JSON.parse(sessionStorage.getItem("sfdg_simple_session"));
-                if (session && session.userId) {
-                    userSession = session;
-                    showApp();
-                } else {
-                    showLogin();
-                }
-            }
-            function showLogin() { loginContainer.classList.remove("d-none"); appContainer.classList.add("d-none"); }
-            function showApp() {
-                 loginContainer.classList.add("d-none"); appContainer.classList.remove("d-none");
-                 document.getElementById("user-greeting").textContent = `Helo, ${userSession.nama}`;
-                 setupTabs();
-                 const firstVisibleTab = document.querySelector(".app-tab:not(.d-none)");
-                 if (firstVisibleTab) { switchTab(firstVisibleTab.dataset.tab); }
-            }
+            function checkSession() { /* ... kod sama ... */ }
+            function showLogin() { /* ... kod sama ... */ }
+            function showApp() { /* ... kod sama ... */ }
             function setupTabs() { /* ... kod sama ... */ }
             function switchTab(tabId) { /* ... kod sama ... */ }
             function showLoading(show) { /* ... kod sama ... */ }
             function fileToBase64(file) { /* ... kod sama ... */ }
 
-            // --- apiCall RINGKAS (text/plain, hantar userId) ---
-            async function apiCall(action, payload = {}) {
+            // --- apiCall doGet/doPost ---
+            async function apiCall(action, payload = {}, method = 'POST') {
                 showLoading(true);
-                try {
-                    // Tambah userId ke payload jika pengguna log masuk
-                    if (userSession.userId) {
-                        payload.userId = userSession.userId;
+                let url = GAS_API_URL;
+                let options = {
+                    method: method,
+                    mode: 'cors',
+                    redirect: 'follow',
+                    headers: {} // Header kosong secara lalai
+                };
+
+                // Tambah userId ke payload jika ada sesi
+                if (userSession.userId) {
+                    payload.userId = userSession.userId;
+                }
+
+                if (method === 'GET') {
+                    // Bina query string untuk GET
+                    const params = new URLSearchParams({ action, ...payload });
+                    url += `?${params.toString()}`;
+                    console.log(`Calling API (GET): ${url}`);
+                } else { // POST
+                    // Gunakan FormData untuk POST bagi mengelak preflight
+                    const formData = new FormData();
+                    formData.append('action', action);
+                    for (const key in payload) {
+                        formData.append(key, payload[key]);
                     }
+                    options.body = formData;
+                    // JANGAN set Content-Type, biar browser lakukannya untuk FormData
+                    console.log(`Calling API (POST) for action: ${action}`);
+                }
 
-                    const requestBody = { action: action, ...payload };
-                    const headers = { "Content-Type": "text/plain;charset=utf-8" }; // Guna text/plain
-
-                    console.log(`Calling API (${action}) with payload:`, requestBody);
-
-                    const response = await fetch(GAS_API_URL, {
-                        method: "POST",
-                        body: JSON.stringify(requestBody), // Hantar sebagai string
-                        headers: headers,
-                        mode: 'cors',
-                        redirect: "follow"
-                    });
-
+                try {
+                    const response = await fetch(url, options);
                     console.log(`API Call (${action}) Status: ${response.status}`);
                     const responseText = await response.text();
                     console.log(`API Call (${action}) Response Text: ${responseText.substring(0, 150)}...`);
@@ -118,19 +80,19 @@
                     if (result.status === "error") throw new Error(result.message);
 
                     showLoading(false);
-                    return result;
+                    return result.data; // Kembalikan 'data' dari respons API
+
                 } catch (error) {
                     showLoading(false);
                     console.error(`API Call Exception (${action}):`, error);
                     alert(`Ralat API (${action}): ${error.message}`);
-                    // Mungkin log keluar jika ralat berkaitan sesi
                     if (error.message.includes("Sesi pengguna tidak sah")) { handleLogout(); }
                     throw error;
                 }
             }
 
 
-            // --- Log Masuk ASAS (Panggil API checkLogin) ---
+            // --- Log Masuk (Guna POST dengan FormData) ---
             document.getElementById("login-form").addEventListener("submit", async (e) => {
                 e.preventDefault();
                 const idLogMasuk = document.getElementById("login-id").value;
@@ -141,22 +103,19 @@
 
                 try {
                     console.log(`Attempting login for ID: ${idLogMasuk}`);
-                    // Guna apiCall untuk hantar permintaan login
-                    const result = await apiCall("login", { idLogMasuk: idLogMasuk, password: password });
+                    // Guna apiCall (POST)
+                    const resultData = await apiCall("login", { idLogMasuk: idLogMasuk, password: password }, 'POST');
 
-                    console.log("Login API response:", result);
-                    if (result.status === "success") {
-                        userSession = {
-                            nama: result.nama,
-                            peranan: result.peranan,
-                            userId: result.userId // Simpan IDLogMasuk sebagai userId
-                        };
-                        sessionStorage.setItem("sfdg_simple_session", JSON.stringify(userSession));
-                        showApp();
-                    } else {
-                         // Ralat sepatutnya sudah ditangkap oleh apiCall, tapi sebagai langkah keselamatan
-                         throw new Error(result.message || "Log masuk gagal.");
-                    }
+                    console.log("Login API response data:", resultData);
+                    // API kini mengembalikan data terus di bawah 'data'
+                    userSession = {
+                        nama: resultData.nama,
+                        peranan: resultData.peranan,
+                        userId: resultData.userId
+                    };
+                    sessionStorage.setItem("sfdg_simple_session", JSON.stringify(userSession));
+                    showApp();
+
                 } catch (error) {
                     console.error("Login attempt failed:", error);
                     errorEl.textContent = error.message;
@@ -167,31 +126,94 @@
             });
 
             // --- Log Keluar ASAS ---
-             function handleLogout() {
-                sessionStorage.removeItem("sfdg_simple_session");
-                userSession = { nama: null, peranan: null, userId: null };
-                showLogin();
-                showLoading(false);
+             function handleLogout() { /* ... kod sama ... */ }
+             document.getElementById("logout-button").addEventListener("click", handleLogout);
+
+            // --- Fungsi Muat Data (Guna GET) ---
+             async function loadHantarSuratForm() {
+                try {
+                    const pelulus = await apiCall("getSenaraiPelulus", {}, 'GET'); // GET
+                    const selectPelulus = document.getElementById("surat-pelulus");
+                    selectPelulus.innerHTML = '<option value="">-- Pilih Penerima --</option>';
+                    pelulus.forEach(p => { selectPelulus.add(new Option(p.nama, p.id)); });
+                } catch (error) { console.error("Gagal load pelulus:", error); }
             }
-            document.getElementById("logout-button").addEventListener("click", handleLogout);
+
+            async function loadDataTab() {
+                const listEl = document.getElementById("data-list");
+                listEl.innerHTML = '<div class="text-center">Memuatkan...</div>';
+                try {
+                    const suratList = await apiCall("getSuratDihantar", {}, 'GET'); // GET
+                    // ... (Kod paparkan jadual sama seperti sebelum ini) ...
+                } catch (error) { listEl.innerHTML = `<div class="alert alert-danger">Gagal muat data: ${error.message}</div>`; }
+            }
+
+            async function loadSuratUntukDitandatangani() {
+                const listEl = document.getElementById("tandatangan-list");
+                listEl.innerHTML = '<div class="text-center">Memuatkan...</div>';
+                try {
+                    const suratList = await apiCall("getSuratUntukDitandatangani", {}, 'GET'); // GET
+                     // ... (Kod paparkan jadual sama seperti sebelum ini, panggil bukaPenandaTangan) ...
+                } catch (error) { listEl.innerHTML = `<div class="alert alert-danger">Gagal muat surat: ${error.message}</div>`; }
+            }
+
+            // --- Fungsi Tindakan (Guna POST) ---
+            document.getElementById("hantar-surat-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const tajuk = document.getElementById("surat-tajuk").value;
+                const sektor = document.getElementById("surat-sektor").value;
+                const idPelulus = document.getElementById("surat-pelulus").value;
+                const fileInput = document.getElementById("surat-fail");
+                if (!fileInput.files[0]) return alert("Pilih fail PDF.");
+                try {
+                    const fileBase64 = await fileToBase64(fileInput.files[0]);
+                    await apiCall("uploadDrafSurat", { // POST (lalai)
+                        fileBase64: fileBase64.split(',')[1], // Hantar base64 sahaja
+                        fileName: fileInput.files[0].name,
+                        tajuk: tajuk, sektor: sektor, idPelulus: idPelulus
+                    });
+                    alert("Surat berjaya dihantar!"); e.target.reset(); loadDataTab(); switchTab('data-tab');
+                } catch (error) { alert(`Gagal hantar: ${error.message}`); }
+            });
+
+             async function bukaPenandaTangan(suratId, fileId, tajuk) { // Terima tajuk juga
+                signerState.currentSuratId = suratId;
+                // ... (Reset state lain) ...
+                 document.getElementById('sign-surat-title').textContent = tajuk; // Papar tajuk
+                 signerModal.show();
+                 try {
+                     const pdfDataResult = await apiCall("getPDFData", { fileId: fileId }, 'GET'); // GET
+                     const pdfData = atob(pdfDataResult.pdfData);
+                     // ... (Kod muat PDF ke PDF.js sama) ...
+                 } catch (error) { alert(`Gagal muat PDF: ${error.message}`); signerModal.hide(); }
+            }
+
+             document.getElementById("save-signature-button").addEventListener("click", async () => {
+                if (!signerState.placement) return alert("Letak tandatangan dahulu.");
+                if (!confirm('Anda pasti?')) return;
+                try {
+                    // ... (Kod jana PDF baru sama seperti sebelum ini) ...
+                    const pdfBytes = await pdfLibDoc.save();
+                    let binary = ''; const len = pdfBytes.byteLength;
+                    for (let i = 0; i < len; i++) { binary += String.fromCharCode(pdfBytes[i]); }
+                    const signedPdfBase64 = btoa(binary);
+
+                    await apiCall("saveSignedPDF", { // POST (lalai)
+                        signedPdfBase64: signedPdfBase64,
+                        suratId: signerState.currentSuratId
+                    });
+                    alert("Tandatangan berjaya disimpan!"); signerModal.hide(); loadSuratUntukDitandatangani();
+                } catch (error) { alert(`Gagal simpan: ${error.message}`); }
+            });
 
 
-            // ... (Salin semua kod fungsi lain dari Fasa 29 TANPA PERUBAHAN) ...
-             async function loadHantarSuratForm() { /*...*/ }
-             document.getElementById("hantar-surat-form").addEventListener("submit", async (e) => { /*...*/ });
-             async function loadDataTab() { /*...*/ }
-             async function loadSuratUntukDitandatangani() { /*...*/ }
-             async function bukaPenandaTangan(suratId, fileId) { /*...*/ }
-             async function renderPDFPage(num) { /*...*/ }
-             document.getElementById("prev-page").addEventListener("click", () => { /*...*/ });
-             document.getElementById("next-page").addEventListener("click", () => { /*...*/ });
-             document.getElementById("clear-signature-button").addEventListener("click", () => { /*...*/ });
-             document.getElementById("place-signature-button").addEventListener("click", () => { /*...*/ });
-             signerState.pdfCanvas.addEventListener("click", async (e) => { /*...*/ });
-             document.getElementById("save-signature-button").addEventListener("click", async () => { /*...*/ });
-             document.querySelectorAll(".app-tab").forEach(tab => { /*...*/ });
+            // ... (Salin semua kod fungsi lain yang tidak berubah) ...
+             // (showLogin, showApp, setupTabs, switchTab, showLoading, fileToBase64, handleLogout)
+             // (loadHantarSuratForm, loadDataTab, loadSuratUntukDitandatangani)
+             // (renderPDFPage, butang nav PDF, butang sig pad, event listener sigCanvas)
 
-            // Mulakan aplikasi dengan menyemak sesi
+
+            // Mulakan aplikasi
             checkSession();
         });
     </script>
