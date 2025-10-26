@@ -16,36 +16,11 @@
     
     <style>
         /* Sembunyikan tab secara lalai */
-        .page-content {
-            display: none;
-        }
-        /* Tunjukkan tab yang aktif */
-        .page-content.active {
-            display: block;
-        }
-        /* Gaya untuk memaparkan PDF */
-        #pdf-viewer {
-            width: 100%;
-            height: 600px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            position: relative;
-        }
-        /* Kanvas untuk melukis tandatangan */
-        #signature-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            cursor: crosshair;
-        }
-        /* Pastikan kanvas PDF di belakang kanvas tandatangan */
-        #pdf-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0;
-        }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        #pdf-viewer { width: 100%; height: 600px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; position: relative; }
+        #signature-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; z-index: 1;} /* Pastikan signature di atas */
+        #pdf-canvas { position: absolute; top: 0; left: 0; z-index: 0; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -55,25 +30,12 @@
 
         <!-- Sidebar (Bar Sisi) -->
         <div class="w-64 bg-gray-800 text-white flex flex-col fixed h-full z-10">
-            <div class="px-6 py-4 border-b border-gray-700">
-                <h1 class="text-2xl font-bold">SFDg JPNP</h1>
-            </div>
+            <div class="px-6 py-4 border-b border-gray-700"> <h1 class="text-2xl font-bold">SFDg JPNP</h1> </div>
             <nav class="flex-grow p-4">
-                <a href="#" class="nav-link flex items-center px-4 py-3 rounded-lg hover:bg-gray-700" data-page="senarai-surat">
-                    <i class="fas fa-list-ul w-6 text-center"></i>
-                    <span class="ml-3">Senarai Surat</span>
-                </a>
-                <a href="#" class="nav-link flex items-center px-4 py-3 rounded-lg hover:bg-gray-700" data-page="hantar-surat" id="nav-hantar-surat">
-                    <i class="fas fa-paper-plane w-6 text-center"></i>
-                    <span class="ml-3">Hantar Surat Baru</span>
-                </a>
+                <a href="#" class="nav-link flex items-center px-4 py-3 rounded-lg hover:bg-gray-700" data-page="senarai-surat"> <i class="fas fa-list-ul w-6 text-center"></i> <span class="ml-3">Senarai Surat</span> </a>
+                <a href="#" class="nav-link flex items-center px-4 py-3 rounded-lg hover:bg-gray-700" data-page="hantar-surat" id="nav-hantar-surat"> <i class="fas fa-paper-plane w-6 text-center"></i> <span class="ml-3">Hantar Surat Baru</span> </a>
             </nav>
-            <div class="p-4 border-t border-gray-700">
-                <button id="logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-sign-out-alt w-5 text-center"></i>
-                    <span class="ml-2">Tukar Pengguna</span>
-                </button>
-            </div>
+            <div class="p-4 border-t border-gray-700"> <button id="logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center"> <i class="fas fa-sign-out-alt w-5 text-center"></i> <span class="ml-2">Tukar Pengguna</span> </button> </div>
         </div>
 
         <!-- Kawasan Kandungan Utama -->
@@ -84,22 +46,8 @@
                 <h2 class="text-3xl font-semibold text-gray-800 mb-6" id="senarai-title">Senarai Surat</h2>
                 <div class="bg-white shadow-md rounded-lg overflow-hidden">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarikh</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tajuk Surat</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="kolum-staf">Staf</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="kolum-signatory">Untuk Perhatian</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tindakan</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="letter-table-body">
-                            <!-- Baris akan dijana oleh JavaScript -->
-                            <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">Memuatkan data...</td>
-                            </tr>
-                        </tbody>
+                        <thead class="bg-gray-50"> <tr> <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarikh</th> <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tajuk Surat</th> <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="kolum-staf">Staf</th> <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" id="kolum-signatory">Untuk Perhatian</th> <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th> <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tindakan</th> </tr> </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="letter-table-body"> <tr> <td colspan="6" class="px-6 py-4 text-center text-gray-500">Memuatkan data...</td> </tr> </tbody>
                     </table>
                 </div>
             </div>
@@ -109,35 +57,13 @@
                 <h2 class="text-3xl font-semibold text-gray-800 mb-6">Hantar Draf Surat Baru</h2>
                 <div class="bg-white shadow-md rounded-lg p-8 max-w-2xl mx-auto">
                     <form id="upload-form">
-                        <div class="mb-6">
-                            <label for="tajuk" class="block text-sm font-medium text-gray-700 mb-2">Tajuk Surat</label>
-                            <input type="text" id="tajuk" name="tajuk" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
-                        </div>
-                        <div class="mb-6">
-                            <label for="signatoryList" class="block text-sm font-medium text-gray-700 mb-2">Pilih Pengarah / TP (Untuk Tandatangan)</label>
-                            <select id="signatoryList" name="signatory" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500" required>
-                                <option value="" disabled selected>Memuatkan senarai...</option>
-                                <!-- Pilihan dijana oleh JavaScript -->
-                            </select>
-                        </div>
-                        <div class="mb-6">
-                            <label for="pdf-file" class="block text-sm font-medium text-gray-700 mb-2">Muat Naik Draf PDF</label>
-                            <input type="file" id="pdf-file" name="pdf-file" class="w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-lg file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100" accept="application/pdf" required>
-                        </div>
-                        <div class="text-right">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out">
-                                <i class="fas fa-paper-plane mr-2"></i>Hantar
-                            </button>
-                        </div>
+                        <div class="mb-6"> <label for="tajuk" class="block text-sm font-medium text-gray-700 mb-2">Tajuk Surat</label> <input type="text" id="tajuk" name="tajuk" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required> </div>
+                        <div class="mb-6"> <label for="signatoryList" class="block text-sm font-medium text-gray-700 mb-2">Pilih Pengarah / TP (Untuk Tandatangan)</label> <select id="signatoryList" name="signatory" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500" required> <option value="" disabled selected>Memuatkan senarai...</option> </select> </div>
+                        <div class="mb-6"> <label for="pdf-file" class="block text-sm font-medium text-gray-700 mb-2">Muat Naik Draf PDF</label> <input type="file" id="pdf-file" name="pdf-file" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="application/pdf" required> </div>
+                        <div class="text-right"> <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out"> <i class="fas fa-paper-plane mr-2"></i>Hantar </button> </div>
                     </form>
                 </div>
             </div>
-
         </main>
     </div>
 
@@ -147,16 +73,8 @@
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Selamat Datang ke SFDg</h2>
             <p class="text-gray-600 mb-6">Sila pilih peranan dan nama anda untuk meneruskan.</p>
             <form id="role-form">
-                <div class="mb-4">
-                    <label for="userSelect" class="block text-sm font-medium text-gray-700 mb-2">Pilih Nama Anda</label>
-                    <select id="userSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500" required>
-                        <option value="" disabled selected>Memuatkan senarai...</option>
-                        <!-- Pilihan dijana oleh JavaScript -->
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out">
-                    Masuk
-                </button>
+                <div class="mb-4"> <label for="userSelect" class="block text-sm font-medium text-gray-700 mb-2">Pilih Nama Anda</label> <select id="userSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500" required> <option value="" disabled selected>Memuatkan senarai...</option> </select> </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out"> Masuk </button>
             </form>
         </div>
     </div>
@@ -165,58 +83,32 @@
     <div id="signModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             <h2 class="text-2xl font-bold mb-4 text-gray-800" id="signModalTitle">Tandatangan Surat</h2>
-            <p class="text-sm text-gray-600 mb-4">Guna tetikus atau skrin sentuh untuk melukis tandatangan anda pada kanvas di bawah. Klik "Simpan" untuk memuktamadkan.</p>
-            
-            <!-- Kontena Paparan PDF & Tandatangan -->
-            <div id="pdf-viewer" class="mb-4 relative">
-                <!-- Kanvas untuk PDF -->
-                <canvas id="pdf-canvas"></canvas>
-                <!-- Kanvas untuk melukis tandatangan -->
-                <canvas id="signature-canvas"></canvas>
-            </div>
-            
+            <p class="text-sm text-gray-600 mb-4">Guna tetikus atau skrin sentuh untuk melukis tandatangan anda. Klik "Simpan".</p>
+            <div id="pdf-viewer" class="mb-4 relative"> <canvas id="pdf-canvas"></canvas> <canvas id="signature-canvas"></canvas> </div>
             <div class="flex justify-between items-center">
-                <button id="clear-signature" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg">
-                    <i class="fas fa-eraser mr-2"></i>Padam
-                </button>
-                <div>
-                    <button id="cancel-sign" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">
-                        Batal
-                    </button>
-                    <button id="save-signature" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
-                        <i class="fas fa-save mr-2"></i>Simpan Tandatangan
-                    </button>
-                </div>
+                <button id="clear-signature" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg"> <i class="fas fa-eraser mr-2"></i>Padam </button>
+                <div> <button id="cancel-sign" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2"> Batal </button> <button id="save-signature" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"> <i class="fas fa-save mr-2"></i>Simpan Tandatangan </button> </div>
             </div>
         </div>
     </div>
 
     <!-- Modal: Memuatkan... -->
     <div id="loadingModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-[99] hidden">
-        <div class="bg-white py-6 px-10 rounded-lg shadow-xl flex items-center">
-            <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i>
-            <span class="text-xl font-medium text-gray-700 ml-4" id="loadingText">Memuatkan...</span>
-        </div>
+        <div class="bg-white py-6 px-10 rounded-lg shadow-xl flex items-center"> <i class="fas fa-spinner fa-spin text-4xl text-blue-600"></i> <span class="text-xl font-medium text-gray-700 ml-4" id="loadingText">Memuatkan...</span> </div>
     </div>
 
     <!-- Toast Notifikasi (Kejayaan/Ralat) -->
-    <div id="toast" class="fixed bottom-10 right-10 bg-green-600 text-white py-3 px-6 rounded-lg shadow-xl z-[100] hidden transition-all duration-300 ease-in-out">
-        <p id="toast-message">Operasi berjaya!</p>
-    </div>
+    <div id="toast" class="fixed bottom-10 right-10 bg-green-600 text-white py-3 px-6 rounded-lg shadow-xl z-[100] hidden transition-all duration-300 ease-in-out"> <p id="toast-message">Operasi berjaya!</p> </div>
 
-
-    <!-- ============================================= -->
-    <!-- SCRIPT UTAMA APLIKASI                       -->
-    <!-- ============================================= -->
     <script>
         // --- KONFIGURASI PENTING ---
-        // GANTIKAN DENGAN URL WEB APP ANDA YANG BARU (DARI AKAUN PERIBADI SETELAH DEPLOY BARU)
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw9roHPNxjgWoxvYVUUvbdTQdvPmAemVB5QnHy-fmj4MMp2H8G6O8Z7B01smywWG8ooMQ/exec"; // <-- GANTI INI
+        // INI ADALAH URL DARI DEPLOYMENT BARU AKAUN PERIBADI ANDA
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbw9roHPNxjgWoxvYVUUvbdTQdvPmAemVB5QnHy-fmj4MMp2H8G6O8Z7B01smywWG8ooMQ/exec"; // <-- URL BARU ANDA
 
         // Pembolehubah Global
-        let currentUser = null; // { Nama: "Ali (Staf)", Jawatan: "Staf" }
-        let allUsersList = []; // Senarai penuh pengguna dari 'getUsers'
-        let currentSignPdfData = {}; // Data untuk modal tandatangan
+        let currentUser = null; 
+        let allUsersList = []; 
+        let currentSignPdfData = {}; 
 
         // Rujukan Elemen DOM
         const pages = document.querySelectorAll('.page-content');
@@ -232,74 +124,32 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
 
         // --- PENGURUSAN HALAMAN DAN MODAL ---
+        function showPage(pageId) { /* ... kod sama ... */ pages.forEach(page => page.classList.remove('active')); document.getElementById(pageId).classList.add('active'); navLinks.forEach(link => { link.classList.remove('bg-gray-700', 'font-semibold'); if (link.dataset.page === pageId) { link.classList.add('bg-gray-700', 'font-semibold'); } }); if (pageId === 'senarai-surat' && currentUser) { loadLetters(); } }
+        function showModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+        function showToast(message, isError = false) { /* ... kod sama ... */ const toast = document.getElementById('toast'); const toastMessage = document.getElementById('toast-message'); toastMessage.innerText = message; toast.className = 'fixed bottom-10 right-10 text-white py-3 px-6 rounded-lg shadow-xl z-[100] transition-all duration-300 ease-in-out'; if (isError) { toast.classList.add('bg-red-600'); } else { toast.classList.add('bg-green-600'); } toast.classList.remove('hidden'); setTimeout(() => { toast.classList.add('hidden'); }, 3000); }
 
-        // Tunjukkan halaman yang dipilih
-        function showPage(pageId) {
-            pages.forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            
-            // Kemas kini pautan nav yang aktif
-            navLinks.forEach(link => {
-                link.classList.remove('bg-gray-700', 'font-semibold');
-                if (link.dataset.page === pageId) {
-                    link.classList.add('bg-gray-700', 'font-semibold');
-                }
-            });
-
-            // Muat semula data surat apabila kembali ke halaman senarai
-            if (pageId === 'senarai-surat' && currentUser) {
-                loadLetters();
-            }
-        }
-
-        // Tunjukkan modal
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-        }
-
-        // Tutup modal
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        // Tunjukkan toast notifikasi
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            
-            toastMessage.innerText = message;
-            toast.className = 'fixed bottom-10 right-10 text-white py-3 px-6 rounded-lg shadow-xl z-[100] transition-all duration-300 ease-in-out'; // Reset
-            
-            if (isError) {
-                toast.classList.add('bg-red-600');
-            } else {
-                toast.classList.add('bg-green-600');
-            }
-            
-            toast.classList.remove('hidden');
-            
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000);
-        }
-
-        // --- FUNGSI API (Google Apps Script) ---
 
         /**
-         * Fungsi utama untuk berkomunikasi dengan Google Apps Script.
-         * @param {string} action - Tindakan yang perlu dipanggil (cth: 'getUsers').
-         * @param {object} [payload] - Data untuk dihantar (untuk POST).
-         * @param {string} [method='GET'] - Kaedah HTTP (GET atau POST).
+         * ==========================================================
+         * FUNGSI fetchFromGas (PENAMBAHAN LOG DIAGNOSTIK + CUBAAN PEMBETULAN)
+         * ==========================================================
+         * @param {string} action - Tindakan (cth: 'getUsers').
+         * @param {object} [payload] - Data untuk POST / Parameter untuk GET.
+         * @param {string} [method='GET'] - GET atau POST.
          */
         async function fetchFromGas(action, payload = {}, method = 'GET') {
             let url = `${GAS_URL}?action=${action}`;
             const options = {
                 method: method,
                 headers: {},
+                mode: 'cors',      // Perlu untuk CORS
+                redirect: 'error', // Baling ralat jika redirect
+                cache: 'no-store', // Paksa ambil data baru
+                credentials: 'omit' // Jangan hantar cookies
             };
 
             if (method === 'GET') {
-                // Untuk GET, tambah parameter pada URL (jika ada)
                 const params = new URLSearchParams();
                 for (const key in payload) {
                     params.append(key, payload[key]);
@@ -307,56 +157,117 @@
                 if (params.toString()) {
                     url += `&${params.toString()}`;
                 }
+                delete options.body; 
             } else if (method === 'POST') {
-                // Untuk POST, hantar data sebagai JSON
-                options.body = JSON.stringify({ action, ...payload });
-                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify({ action, ...payload }); 
+                options.headers['Content-Type'] = 'application/json'; 
+                url = GAS_URL; // Untuk POST, URL hanya endpoint utama
             }
 
             try {
+                console.log(`Memanggil ${method}: ${url}`, options.body ? `dengan body ${options.body.substring(0,100)}...` : '');
                 const response = await fetch(url, options);
-                
+                console.log(`Respons Status: ${response.status}, OK: ${response.ok}, Redirected: ${response.redirected}`); 
+                console.log('Response Headers:', Object.fromEntries(response.headers.entries())); 
+
+                 // Semak jika ia adalah redirect (lebih kukuh)
+                 if (response.status === 0 || response.redirected || (response.status >= 300 && response.status < 400 && response.headers.has('location'))) {
+                     console.error(`!!! PERMINTAAN DIREDIRECT ATAU GAGAL ${response.status}`);
+                     // Cuba dapatkan URL redirect jika ada
+                     const redirectUrl = response.headers.get('location');
+                     console.error(`Redirected to: ${redirectUrl || 'Lokasi tidak diketahui'}`);
+                     throw new Error(`Permintaan diredirect (${response.status}). Semak isu akaun/login atau pemilikan aset.`);
+                 }
+
                 if (!response.ok) {
-                    // Cuba dapatkan teks ralat jika ada
                     let errorText = response.statusText;
-                    try {
-                        const errorBody = await response.text();
-                        // Google Apps Script kadangkala membalas HTML untuk redirect atau ralat auth
-                        if (errorBody.includes('<title>Sign in</title>')) {
-                             errorText = "Redirected to login (check permissions/ownership)";
+                    let errorBody = '';
+                    try { 
+                        errorBody = await response.text(); 
+                        console.error(`Badan respons ralat (${response.status}): ${errorBody.substring(0, 500)}`); 
+                        if (errorBody.includes('<title>Sign in</title>') || errorBody.includes('accounts.google.com')) { 
+                            errorText = `Redirected (${response.status})`; 
                         } else {
-                             errorText += `: ${errorBody.substring(0, 100)}`; // Tunjuk permulaan ralat
-                        }
-                    } catch (e) { /* Abaikan jika teks tidak boleh dibaca */ }
+                            // Cuba cari mesej ralat dari GAS jika ada
+                            const gasErrorMatch = errorBody.match(/Execution failed: (.*?)(\n|<br>)/i);
+                            if(gasErrorMatch && gasErrorMatch[1]){
+                                errorText += `: ${gasErrorMatch[1]}`;
+                            } else {
+                                errorText += `: ${errorBody.substring(0, 150)}`; 
+                            }
+                        } 
+                    } catch (e) { console.warn("Tidak dapat membaca badan ralat:", e); }
                     throw new Error(`Ralat Rangkaian: ${response.status} ${errorText}`);
                 }
                 
+                const contentType = response.headers.get("content-type");
+                 console.log(`Content-Type: ${contentType}`);
+                 
+                // Balasan GAS kadangkala text/javascript walaupun ia JSON
+                if (!contentType || (!contentType.includes("application/json") && !contentType.includes("text/javascript"))) { 
+                   console.warn(`Respons bukan JSON/JS diterima: ${contentType}`);
+                   const textResponse = await response.text();
+                   console.warn(`Teks respons: ${textResponse.substring(0, 500)}`); 
+                    if (textResponse.includes('<title>Sign in</title>') || textResponse.includes('accounts.google.com')) {
+                       throw new Error('Respons adalah laman log masuk (isu kebenaran atau redirect).');
+                   } else {
+                       // Cuba tafsir sebagai JSON walaupun content-type salah
+                       try {
+                           const result = JSON.parse(textResponse);
+                            console.log("Berjaya parse teks sebagai JSON:", result);
+                           if (result.success === false) { 
+                                throw new Error(result.message || 'Ralat tidak diketahui dari pelayan Apps Script (parse teks)');
+                           }
+                           return result; 
+                       } catch (parseError) {
+                            console.error("Gagal parse teks respons:", parseError);
+                            throw new Error(`Respons bukan JSON diterima (${contentType || 'tiada'}) dan gagal di-parse. Kandungan: ${textResponse.substring(0,100)}...`);
+                       }
+                   }
+                }
+
+                // Jika content-type betul atau text/javascript, cuba parse JSON
                 const result = await response.json();
+                console.log("Respons JSON diterima:", result);
                 
-                if (result.success === false) {
-                    throw new Error(result.message || 'Ralat tidak diketahui dari pelayan');
+                if (result.success === false) { 
+                    throw new Error(result.message || 'Ralat tidak diketahui dari pelayan Apps Script');
                 }
                 
-                return result; // Sepatutnya mengandungi { success: true, ...data }
+                return result; 
 
             } catch (error) {
                 console.error('Ralat fetchFromGas:', error);
-                showToast(`[RALAT] Gagal menghubungi pelayan: ${error.message}`, true); // Mesej lebih jelas
-                throw error; // Lempar semula ralat untuk ditangkap oleh pemanggil
+                // Paparkan mesej yang lebih membantu
+                let userFriendlyMessage = `[RALAT] Gagal menghubungi pelayan: ${error.message}`;
+                 if (error.message.includes('Redirected')) {
+                     userFriendlyMessage = `[RALAT] Permintaan diredirect. Pastikan anda log masuk ke akaun Google yang betul (@gmail.com) dalam tetingkap ini.`;
+                 } else if (error.message.includes('Respons adalah laman log masuk')) {
+                     userFriendlyMessage = `[RALAT] Isu kebenaran atau redirect. Cuba log keluar dan log masuk semula ke akaun Google anda (@gmail.com).`;
+                 } else if (error.message.includes('Failed to fetch')) {
+                     userFriendlyMessage = `[RALAT] Gagal menghubungi pelayan. Semak sambungan internet atau URL skrip.`;
+                 }
+                showToast(userFriendlyMessage, true);
+                throw error; 
             }
         }
+
 
         // --- LOGIK UTAMA APLIKASI ---
 
         // 1. Muatkan senarai pengguna untuk modal login
         async function loadUsersForLogin() {
             const userSelect = document.getElementById('userSelect');
-            userSelect.innerHTML = '<option value="" disabled selected>Memuatkan pengguna...</option>'; // Status memuatkan
+            userSelect.innerHTML = '<option value="" disabled selected>Memuatkan pengguna...</option>'; 
             try {
-                const data = await fetchFromGas('getUsers');
-                allUsersList = data.users; // Simpan senarai penuh
+                const result = await fetchFromGas('getUsers'); 
+                // Semak jika result.users wujud
+                if (!result || !result.users) {
+                     throw new Error("Format respons getUsers tidak sah.");
+                }
+                allUsersList = result.users; 
                 
-                userSelect.innerHTML = '<option value="" disabled selected>Pilih nama anda...</option>'; // Reset
+                userSelect.innerHTML = '<option value="" disabled selected>Pilih nama anda...</option>'; 
                 allUsersList.forEach(user => {
                     const option = document.createElement('option');
                     option.value = user.Nama;
@@ -367,20 +278,23 @@
             } catch (error) {
                 userSelect.innerHTML = '<option value="" disabled selected>Ralat memuatkan pengguna</option>';
                 console.error('Gagal memuatkan pengguna:', error);
-                // Toast sudah dipaparkan oleh fetchFromGas
+                 // Toast sudah dipaparkan oleh fetchFromGas
             }
         }
 
         // 2. Muatkan senarai pelulus (Signatory) untuk borang hantar surat
         async function loadSignatoriesForForm() {
             const signatoryList = document.getElementById('signatoryList');
-             signatoryList.innerHTML = '<option value="" disabled selected>Memuatkan pelulus...</option>'; // Status memuatkan
+             signatoryList.innerHTML = '<option value="" disabled selected>Memuatkan pelulus...</option>'; 
             try {
-                // Panggil 'getSenaraiPelulus' yang baru
-                const data = await fetchFromGas('getSenaraiPelulus');
+                const result = await fetchFromGas('getSenaraiPelulus'); 
+                 // Semak jika result.users wujud
+                if (!result || !result.users) {
+                     throw new Error("Format respons getSenaraiPelulus tidak sah.");
+                }
                 
-                signatoryList.innerHTML = '<option value="" disabled selected>Pilih Pengarah / TP...</option>'; // Reset
-                data.users.forEach(user => {
+                signatoryList.innerHTML = '<option value="" disabled selected>Pilih Pengarah / TP...</option>'; 
+                result.users.forEach(user => { 
                     const option = document.createElement('option');
                     option.value = user.Nama;
                     option.textContent = `${user.Nama} (${user.Jawatan})`;
@@ -389,54 +303,15 @@
             } catch (error) {
                 signatoryList.innerHTML = '<option value="" disabled selected>Ralat memuatkan pelulus</option>';
                 console.error('Gagal memuatkan pelulus:', error);
-                 // Toast sudah dipaparkan oleh fetchFromGas
+                // Toast sudah dipaparkan oleh fetchFromGas
             }
         }
         
-        // 3. Kendalikan pemilihan peranan (login)
-        document.getElementById('role-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const userSelect = document.getElementById('userSelect');
-            const selectedOption = userSelect.options[userSelect.selectedIndex];
-            
-            if (!selectedOption || !selectedOption.value) {
-                showToast('Sila pilih nama anda.', true);
-                return;
-            }
+        // 3. Kendalikan pemilihan peranan (login) - (Kod sama)
+        document.getElementById('role-form').addEventListener('submit', (e) => { e.preventDefault(); const userSelect = document.getElementById('userSelect'); const selectedOption = userSelect.options[userSelect.selectedIndex]; if (!selectedOption || !selectedOption.value) { showToast('Sila pilih nama anda.', true); return; } currentUser = { Nama: selectedOption.value, Jawatan: selectedOption.dataset.jawatan }; localStorage.setItem('sfdgUser', JSON.stringify(currentUser)); setupUIPerRole(currentUser.Jawatan); closeModal('roleModal'); showPage('senarai-surat'); });
 
-            currentUser = {
-                Nama: selectedOption.value,
-                Jawatan: selectedOption.dataset.jawatan
-            };
-
-            // Simpan ke localStorage untuk sesi
-            localStorage.setItem('sfdgUser', JSON.stringify(currentUser));
-            
-            // Konfigurasi UI berdasarkan peranan
-            setupUIPerRole(currentUser.Jawatan);
-            
-            closeModal('roleModal');
-            showPage('senarai-surat'); // Tunjukkan senarai surat secara lalai
-        });
-
-        // 4. Konfigurasi UI berdasarkan peranan
-        function setupUIPerRole(role) {
-            if (!role) return;
-
-            const roleLower = role.toLowerCase();
-            
-            if (roleLower === 'staf') {
-                document.getElementById('nav-hantar-surat').style.display = 'block';
-                document.getElementById('senarai-title').textContent = 'Surat Yang Telah Dihantar';
-                document.getElementById('kolum-staf').style.display = 'none';
-                document.getElementById('kolum-signatory').style.display = 'table-cell';
-            } else if (roleLower === 'pengarah' || roleLower === 'tp') {
-                document.getElementById('nav-hantar-surat').style.display = 'none';
-                document.getElementById('senarai-title').textContent = 'Surat Untuk Ditandatangani';
-                document.getElementById('kolum-staf').style.display = 'table-cell';
-                document.getElementById('kolum-signatory').style.display = 'none';
-            }
-        }
+        // 4. Konfigurasi UI berdasarkan peranan - (Kod sama)
+        function setupUIPerRole(role) { if (!role) return; const roleLower = role.toLowerCase(); if (roleLower === 'staf') { document.getElementById('nav-hantar-surat').style.display = 'block'; document.getElementById('senarai-title').textContent = 'Surat Yang Telah Dihantar'; document.getElementById('kolum-staf').style.display = 'none'; document.getElementById('kolum-signatory').style.display = 'table-cell'; } else if (roleLower === 'pengarah' || roleLower === 'tp') { document.getElementById('nav-hantar-surat').style.display = 'none'; document.getElementById('senarai-title').textContent = 'Surat Untuk Ditandatangani'; document.getElementById('kolum-staf').style.display = 'table-cell'; document.getElementById('kolum-signatory').style.display = 'none'; } }
 
         // 5. Muatkan senarai surat (Senarai Utama)
         async function loadLetters() {
@@ -446,57 +321,38 @@
             tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Memuatkan data surat...</td></tr>';
             
             try {
-                const data = await fetchFromGas('getLetters', { 
+                const result = await fetchFromGas('getLetters', { 
                     name: currentUser.Nama, 
                     role: currentUser.Jawatan 
-                });
+                }); 
 
-                if (!data.letters || data.letters.length === 0) { // Pemeriksaan tambahan
+                // Semak jika result.letters wujud
+                if (!result || !result.letters) {
+                     throw new Error("Format respons getLetters tidak sah.");
+                }
+                const letters = result.letters; 
+
+                if (!letters || letters.length === 0) { 
                     tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Tiada surat ditemui.</td></tr>';
                     return;
                 }
 
-                tableBody.innerHTML = ''; // Kosongkan jadual
-                data.letters.forEach(letter => {
+                tableBody.innerHTML = ''; 
+                letters.forEach(letter => { 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-gray-50';
-                    
                     const statusClass = letter.Status === 'Draf' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
                     const isStaf = currentUser.Jawatan.toLowerCase() === 'staf';
-                    
-                    // Logik Butang Tindakan
                     let actionButton = '';
-                    if (isStaf) {
-                        if (letter.Status === 'Draf' && letter.DraftFileUrl) { // Pastikan URL ada
-                            actionButton = `<a href="${letter.DraftFileUrl}" target="_blank" class="text-gray-500 hover:text-gray-700" title="Lihat Draf"><i class="fas fa-eye"></i></a>`;
-                        } else if (letter.Status !== 'Draf' && letter.SignedFileUrl) { // Pastikan URL ada
-                            actionButton = `<a href="${letter.SignedFileUrl}" target="_blank" class="text-green-600 hover:text-green-800" title="Muat Turun Selesai"><i class="fas fa-download"></i></a>`;
-                        } else {
-                            actionButton = `<span class="text-gray-400" title="URL tidak tersedia"><i class="fas fa-link-slash"></i></span>`; // Ikon jika URL tiada
-                        }
-                    } else { // Pengarah / TP
-                        if (letter.Status === 'Draf' && letter.DraftFileID) { // Pastikan ID ada
-                            actionButton = `<button class="text-blue-600 hover:text-blue-800" title="Buka & Tandatangan" onclick="openSignModal('${letter.DraftFileID}', '${letter.Tajuk}', '${letter.LetterID}')">
-                                <i class="fas fa-file-signature"></i>
-                            </button>`;
-                        } else {
-                            actionButton = `<span class="text-gray-400" title="Selesai"><i class="fas fa-check"></i></span>`;
-                        }
-                    }
+                     if (isStaf) { if (letter.Status === 'Draf' && letter.DraftFileUrl) { actionButton = `<a href="${letter.DraftFileUrl}" target="_blank" class="text-gray-500 hover:text-gray-700" title="Lihat Draf"><i class="fas fa-eye"></i></a>`; } else if (letter.Status !== 'Draf' && letter.SignedFileUrl) { actionButton = `<a href="${letter.SignedFileUrl}" target="_blank" class="text-green-600 hover:text-green-800" title="Muat Turun Selesai"><i class="fas fa-download"></i></a>`; } else { actionButton = `<span class="text-gray-400" title="URL tidak tersedia"><i class="fas fa-link-slash"></i></span>`; } } else { if (letter.Status === 'Draf' && letter.DraftFileID) { actionButton = `<button class="text-blue-600 hover:text-blue-800" title="Buka & Tandatangan" onclick="openSignModal('${letter.DraftFileID}', '${letter.Tajuk}', '${letter.LetterID}')"><i class="fas fa-file-signature"></i></button>`; } else { actionButton = `<span class="text-gray-400" title="Selesai"><i class="fas fa-check"></i></span>`; } }
 
                     tr.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${letter.Timestamp ? new Date(letter.Timestamp).toLocaleDateString('ms-MY') : '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${letter.Tajuk || '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" ${isStaf ? 'style="display:none;"' : ''}>${letter.Staf || '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" ${!isStaf ? 'style="display:none;"' : ''}>${letter.Signatory || '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                ${letter.Status || 'Tidak diketahui'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            ${actionButton}
-                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm"> <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${letter.Status || 'Tidak diketahui'}</span> </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"> ${actionButton} </td>
                     `;
                     tableBody.appendChild(tr);
                 });
@@ -509,62 +365,28 @@
         // 6. Kendalikan penghantaran borang (Hantar Surat)
         document.getElementById('upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const fileInput = document.getElementById('pdf-file');
             const file = fileInput.files[0];
             const tajuk = document.getElementById('tajuk').value;
             const signatory = document.getElementById('signatoryList').value;
-
-            if (!file || !tajuk || !signatory) {
-                showToast('Sila lengkapkan semua medan.', true);
-                return;
-            }
-
-            loadingText.textContent = 'Memuat naik draf surat...';
-            showModal('loadingModal');
-
+            if (!file || !tajuk || !signatory) { showToast('Sila lengkapkan semua medan.', true); return; }
+            loadingText.textContent = 'Memuat naik draf surat...'; showModal('loadingModal');
             try {
-                // Tukar fail ke Base64
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = async () => {
-                   try { // Tambah try...catch dalam onload
+                   try { 
                         const pdfBase64 = reader.result.split(',')[1];
-                        
-                        const payload = {
-                            stafName: currentUser.Nama,
-                            tajuk: tajuk,
-                            signatory: signatory,
-                            fileName: file.name,
-                            pdfBase64: pdfBase64
-                        };
-
-                        await fetchFromGas('uploadDraft', payload, 'POST');
-                        
-                        closeModal('loadingModal');
-                        showToast('Surat berjaya dihantar!', false);
-                        document.getElementById('upload-form').reset();
-                        showPage('senarai-surat'); // Kembali ke senarai
-                   } catch (innerError) {
-                       closeModal('loadingModal');
-                       // fetchFromGas sudah memaparkan toast ralat
-                       console.error("Ralat dalam reader.onload:", innerError);
-                   }
+                        const payload = { stafName: currentUser.Nama, tajuk: tajuk, signatory: signatory, fileName: file.name, pdfBase64: pdfBase64 };
+                        await fetchFromGas('uploadDraft', payload, 'POST'); 
+                        closeModal('loadingModal'); showToast('Surat berjaya dihantar!', false); document.getElementById('upload-form').reset(); showPage('senarai-surat'); 
+                   } catch (innerError) { closeModal('loadingModal'); console.error("Ralat dalam reader.onload:", innerError); }
                 };
-                 reader.onerror = (error) => { // Tambah onerror
-                    closeModal('loadingModal');
-                    showToast('Gagal membaca fail PDF.', true);
-                    console.error("Ralat FileReader:", error);
-                 };
-            } catch (error) {
-                closeModal('loadingModal');
-                // fetchFromGas sudah memaparkan toast ralat
-                 console.error("Ralat luar:", error);
-            }
+                 reader.onerror = (error) => { closeModal('loadingModal'); showToast('Gagal membaca fail PDF.', true); console.error("Ralat FileReader:", error); };
+            } catch (error) { closeModal('loadingModal'); console.error("Ralat luar:", error); }
         });
 
-        // 7. Logik Tandatangan (Bahagian Paling Kompleks)
-        
+        // 7. Logik Tandatangan
         const signCanvas = document.getElementById('signature-canvas');
         const pdfCanvas = document.getElementById('pdf-canvas');
         const pdfViewer = document.getElementById('pdf-viewer');
@@ -572,240 +394,77 @@
         let drawing = false;
 
         async function openSignModal(draftFileId, tajuk, letterId) {
-            // Reset data
             currentSignPdfData = { draftFileId, tajuk, letterId };
             document.getElementById('signModalTitle').textContent = `Tandatangan: ${tajuk}`;
-            // Set warna stroke (cth: hitam) dan ketebalan
-            signCtx.strokeStyle = "#000000"; 
-            signCtx.lineWidth = 2; 
+            signCtx.strokeStyle = "#000000"; signCtx.lineWidth = 2; 
             signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
-            
-            loadingText.textContent = 'Memuatkan draf PDF...';
-            showModal('loadingModal');
-            showModal('signModal'); // Tunjukkan di belakang loading
-
+            loadingText.textContent = 'Memuatkan draf PDF...'; showModal('loadingModal'); showModal('signModal'); 
             try {
-                const data = await fetchFromGas('getDraftPdf', { fileId: draftFileId });
-                currentSignPdfData.pdfBase64 = data.pdfBase64; // Simpan untuk save
-
-                const pdfData = atob(data.pdfBase64);
-                // Guna Uint8Array untuk pdf.js v2+
+                const result = await fetchFromGas('getDraftPdf', { fileId: draftFileId }); 
+                // Semak jika result.pdfBase64 wujud
+                if (!result || !result.pdfBase64) {
+                     throw new Error("Format respons getDraftPdf tidak sah.");
+                }
+                currentSignPdfData.pdfBase64 = result.pdfBase64; 
+                const pdfData = atob(result.pdfBase64);
                 const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfData.split('').map(char => char.charCodeAt(0))) }).promise; 
-                
-                // Papar mukasurat pertama
-                const page = await pdfDoc.getPage(1); // Mula dari 1
+                const page = await pdfDoc.getPage(1); 
                 const viewport = page.getViewport({ scale: 1.5 });
-
-                // Set saiz kanvas berdasarkan saiz PDF
-                pdfCanvas.width = viewport.width;
-                pdfCanvas.height = viewport.height;
-                signCanvas.width = viewport.width;
-                signCanvas.height = viewport.height;
-                // Selaraskan ketinggian viewer
-                pdfViewer.style.height = `${Math.min(viewport.height, window.innerHeight * 0.6)}px`; // Hadkan ketinggian modal
-
-                const renderContext = {
-                    canvasContext: pdfCanvas.getContext('2d'),
-                    viewport: viewport
-                };
+                pdfCanvas.width = viewport.width; pdfCanvas.height = viewport.height;
+                signCanvas.width = viewport.width; signCanvas.height = viewport.height;
+                pdfViewer.style.height = `${Math.min(viewport.height, window.innerHeight * 0.6)}px`; 
+                const renderContext = { canvasContext: pdfCanvas.getContext('2d'), viewport: viewport };
                 await page.render(renderContext).promise;
-
                 closeModal('loadingModal');
-
-            } catch (error) {
-                closeModal('loadingModal');
-                closeModal('signModal');
-                 // fetchFromGas sudah memaparkan toast ralat
-                 console.error("Ralat membuka modal tandatangan:", error);
-            }
+            } catch (error) { closeModal('loadingModal'); closeModal('signModal'); console.error("Ralat membuka modal tandatangan:", error); }
         }
 
-        // Fungsi melukis
-        function startDrawing(e) {
-            drawing = true;
-            signCtx.beginPath();
-            // Dapatkan posisi relatif kepada kanvas
-            const rect = signCanvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            signCtx.moveTo(x, y);
-        }
+        // Fungsi melukis - (Kod sama)
+        function startDrawing(e) { drawing = true; signCtx.beginPath(); const rect = signCanvas.getBoundingClientRect(); const x = (e.clientX || e.touches[0].clientX) - rect.left; const y = (e.clientY || e.touches[0].clientY) - rect.top; signCtx.moveTo(x, y); }
+        function draw(e) { if (!drawing) return; const rect = signCanvas.getBoundingClientRect(); const x = (e.clientX || e.touches[0].clientX) - rect.left; const y = (e.clientY || e.touches[0].clientY) - rect.top; signCtx.lineTo(x, y); signCtx.stroke(); }
+        function stopDrawing() { if (drawing) { signCtx.closePath(); drawing = false; } }
 
-        function draw(e) {
-            if (!drawing) return;
-             // Dapatkan posisi relatif kepada kanvas
-            const rect = signCanvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            signCtx.lineTo(x, y);
-            signCtx.stroke();
-        }
+        // Acara Tetikus & Sentuhan - (Kod sama)
+        signCanvas.addEventListener('mousedown', startDrawing); signCanvas.addEventListener('mousemove', draw); signCanvas.addEventListener('mouseup', stopDrawing); signCanvas.addEventListener('mouseout', stopDrawing); 
+        signCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); }, { passive: false }); signCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); }, { passive: false }); signCanvas.addEventListener('touchend', stopDrawing); signCanvas.addEventListener('touchcancel', stopDrawing); 
 
-        function stopDrawing() {
-            if (drawing) {
-                signCtx.closePath(); // Tutup path selepas melukis
-                drawing = false;
-            }
-        }
-
-        // Acara Tetikus
-        signCanvas.addEventListener('mousedown', startDrawing);
-        signCanvas.addEventListener('mousemove', draw);
-        signCanvas.addEventListener('mouseup', stopDrawing);
-        signCanvas.addEventListener('mouseout', stopDrawing); 
-
-        // Acara Sentuhan (Touch Events)
-        signCanvas.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Elak skrol
-            startDrawing(e.touches[0]); 
-        }, { passive: false }); // Perlukan passive: false untuk preventDefault
-        signCanvas.addEventListener('touchmove', (e) => {
-            e.preventDefault(); // Elak skrol
-            draw(e.touches[0]);
-        }, { passive: false });
-        signCanvas.addEventListener('touchend', stopDrawing);
-        signCanvas.addEventListener('touchcancel', stopDrawing); // Jika sentuhan dibatalkan
-
-        // Padam tandatangan
-        document.getElementById('clear-signature').addEventListener('click', () => {
-            signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
-        });
-
-        // Batal tandatangan
-        document.getElementById('cancel-sign').addEventListener('click', () => {
-            closeModal('signModal');
-        });
+        // Padam & Batal - (Kod sama)
+        document.getElementById('clear-signature').addEventListener('click', () => { signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height); });
+        document.getElementById('cancel-sign').addEventListener('click', () => { closeModal('signModal'); });
 
         // Simpan tandatangan
         document.getElementById('save-signature').addEventListener('click', async () => {
-             // Semak jika kanvas kosong
-            if (isCanvasBlank(signCanvas)) {
-                showToast('Sila lukis tandatangan anda dahulu.', true);
-                return;
-            }
-            
-            loadingText.textContent = 'Menyimpan tandatangan...';
-            showModal('loadingModal');
-
+            if (isCanvasBlank(signCanvas)) { showToast('Sila lukis tandatangan anda dahulu.', true); return; }
+            loadingText.textContent = 'Menyimpan tandatangan...'; showModal('loadingModal');
             try {
-                // 1. Dapatkan tandatangan sebagai imej PNG Base64
-                // Guna latar belakang lutsinar jika boleh
                 const signatureImageBase64 = signCanvas.toDataURL('image/png'); 
-                
-                // 2. Muatkan PDF asal menggunakan pdf-lib
                 const pdfBytes = await fetch(`data:application/pdf;base64,${currentSignPdfData.pdfBase64}`).then(res => res.arrayBuffer());
                 const pdfDoc = await PDFDocument.load(pdfBytes);
-
-                // 3. Masukkan imej tandatangan ke dalam PDF
                 const signatureImage = await pdfDoc.embedPng(signatureImageBase64);
-                
-                const pages = pdfDoc.getPages();
-                const firstPage = pages[0]; // Letak di mukasurat pertama
-
-                // Skala saiz imej
-                const { width, height } = signatureImage.scale(0.25); // Skala 25% (lebih kecil)
-                
-                // Letak tandatangan (di sudut bawah-kanan)
-                 const padding = 50; 
-                firstPage.drawImage(signatureImage, {
-                    x: firstPage.getWidth() - width - padding, // Align kanan
-                    y: padding,                            // Align bawah
-                    width: width,
-                    height: height,
-                });
-                
-                // 4. Simpan PDF baru sebagai Base64
+                const firstPage = pdfDoc.getPages()[0]; 
+                const { width, height } = signatureImage.scale(0.25); 
+                const padding = 50; 
+                firstPage.drawImage(signatureImage, { x: firstPage.getWidth() - width - padding, y: padding, width: width, height: height });
                 const newPdfBytes = await pdfDoc.save();
-                // Cara menukar ArrayBuffer ke Base64 yang lebih selamat
                 const newPdfBase64 = btoa(new Uint8Array(newPdfBytes).reduce((data, byte) => data + String.fromCharCode(byte), ''));
-
-                // 5. Hantar ke Google Apps Script
-                await fetchFromGas('saveSigned', {
-                    draftFileId: currentSignPdfData.draftFileId,
-                    fileName: `(TT) ${currentSignPdfData.tajuk}.pdf`, // Nama fail lebih pendek
-                    signedPdfBase64: newPdfBase64
-                }, 'POST');
-                
-                closeModal('loadingModal');
-                closeModal('signModal');
-                showToast('Surat berjaya ditandatangani dan disimpan!', false);
-                showPage('senarai-surat'); // Muat semula senarai
-
-            } catch (error) {
-                closeModal('loadingModal');
-                console.error('Ralat menyimpan tandatangan:', error);
-                 // Toast sudah dipaparkan oleh fetchFromGas
-                 showToast(`Gagal menyimpan: ${error.message}`, true); // Pastikan ralat dipaparkan
-            }
+                const payload = { draftFileId: currentSignPdfData.draftFileId, fileName: `(TT) ${currentSignPdfData.tajuk}.pdf`, signedPdfBase64: newPdfBase64 };
+                await fetchFromGas('saveSigned', payload, 'POST'); 
+                closeModal('loadingModal'); closeModal('signModal'); showToast('Surat berjaya ditandatangani dan disimpan!', false); showPage('senarai-surat'); 
+            } catch (error) { closeModal('loadingModal'); console.error('Ralat menyimpan tandatangan:', error); showToast(`Gagal menyimpan: ${error.message}`, true); }
         });
 
-        // Fungsi untuk menyemak jika kanvas kosong
-        function isCanvasBlank(canvas) {
-            const context = canvas.getContext('2d');
-            const pixelBuffer = new Uint32Array(
-                context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
-            );
-            // Jika semua piksel adalah lutsinar (alpha=0), kanvas kosong
-            return !pixelBuffer.some(pixel => pixel !== 0); 
-        }
+        // Fungsi isCanvasBlank - (Kod sama)
+        function isCanvasBlank(canvas) { const context = canvas.getContext('2d'); const pixelBuffer = new Uint32Array(context.getImageData(0, 0, canvas.width, canvas.height).data.buffer); return !pixelBuffer.some(pixel => pixel !== 0); }
 
         // --- PENGURUSAN SESI (SESSION) ---
+        // Log keluar & Navigasi - (Kod sama)
+        document.getElementById('logout-button').addEventListener('click', () => { currentUser = null; localStorage.removeItem('sfdgUser'); window.location.reload(); });
+        navLinks.forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const pageId = link.dataset.page; if (currentUser) { showPage(pageId); } else { window.location.reload(); } }); });
 
-        // Log keluar / Tukar Pengguna
-        document.getElementById('logout-button').addEventListener('click', () => {
-            currentUser = null;
-            localStorage.removeItem('sfdgUser');
-            // Muatkan semula halaman untuk reset sepenuhnya
-            window.location.reload(); 
-        });
-
-        // Pendaftaran Event Listener Navigasi
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const pageId = link.dataset.page;
-                if (currentUser) {
-                    showPage(pageId);
-                } else {
-                    // Sepatutnya tidak berlaku jika modal login berfungsi, tetapi sebagai fallback
-                    window.location.reload(); 
-                }
-            });
-        });
-
-        // --- MULA APLIKASI (DOM Content Loaded) ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('sfdgUser');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                    if (currentUser && currentUser.Nama && currentUser.Jawatan) {
-                        setupUIPerRole(currentUser.Jawatan);
-                        closeModal('roleModal');
-                        showPage('senarai-surat'); 
-                        loadSignatoriesForForm(); // Muat senarai pelulus
-                    } else {
-                         // Data pengguna tidak sah, paksa login semula
-                        localStorage.removeItem('sfdgUser');
-                        showModal('roleModal');
-                        loadUsersForLogin();
-                        loadSignatoriesForForm();
-                    }
-                } catch (e) {
-                     // Ralat parse JSON, paksa login semula
-                    localStorage.removeItem('sfdgUser');
-                    showModal('roleModal');
-                    loadUsersForLogin();
-                    loadSignatoriesForForm();
-                }
-            } else {
-                showModal('roleModal');
-                loadUsersForLogin();
-                loadSignatoriesForForm();
-            }
-        });
+        // --- MULA APLIKASI ---
+        // (Kod sama, memanggil loadUsersForLogin dan loadSignatoriesForForm)
+         document.addEventListener('DOMContentLoaded', () => { const savedUser = localStorage.getItem('sfdgUser'); if (savedUser) { try { currentUser = JSON.parse(savedUser); if (currentUser && currentUser.Nama && currentUser.Jawatan) { setupUIPerRole(currentUser.Jawatan); closeModal('roleModal'); showPage('senarai-surat'); loadSignatoriesForForm(); } else { localStorage.removeItem('sfdgUser'); showModal('roleModal'); loadUsersForLogin(); loadSignatoriesForForm(); } } catch (e) { localStorage.removeItem('sfdgUser'); showModal('roleModal'); loadUsersForLogin(); loadSignatoriesForForm(); } } else { showModal('roleModal'); loadUsersForLogin(); loadSignatoriesForForm(); } });
 
     </script>
 </body>
 </html>
-
