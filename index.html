@@ -15,16 +15,22 @@
             background-color: rgba(255,255,255,0.8); display: none; 
             justify-content: center; align-items: center; z-index: 9999; 
         }
+        /* Kanvas Tandatangan Mesti berada di atas Kanvas PDF */
         #signature-canvas { 
             position: absolute; left: 0; top: 0; z-index: 10; 
             cursor: crosshair; background: transparent; 
         }
-        .signing-container { position: relative; display: inline-block; border: 1px solid #ccc; }
-        .tab-button { padding: 10px 20px; border: none; background: #e9ecef; }
-        .tab-button.active { background: #007bff; color: white; }
+        /* Untuk memastikan kedua-dua kanvas bertindan dengan betul */
+        .signing-container { 
+            position: relative; 
+            display: inline-block; 
+            border: 1px solid #ccc; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
         .surat-item { border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-bottom: 10px; }
         .status-draf { background-color: #fff3cd; }
         .status-selesai { background-color: #d1edff; }
+        .card-body.bg-light { padding: 0 !important; } /* Buang padding pada card-body yang memegang kanvas */
     </style>
 </head>
 <body>
@@ -36,61 +42,38 @@
             </div>
         </div>
 
-        <!-- Halaman Log Masuk -->
-        <div id="login-page" class="page active">
-            <div class="row justify-content-center align-items-center min-vh-100">
-                <div class="col-md-4">
-                    <div class="card shadow">
-                        <div class="card-header bg-primary text-white text-center">
-                            <h4 class="mb-0">SFDg - JPN Pahang</h4>
-                            <small>Sistem Fail Digital</small>
-                        </div>
-                        <div class="card-body p-4">
-                            <form id="login-form">
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">ID Pengguna</label>
-                                    <input type="text" class="form-control" id="username" name="idLogMasuk" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Kata Laluan</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Log Masuk</button>
-                            </form>
-                            <div id="login-error" class="alert alert-danger mt-3 d-none"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboard Staf -->
-        <div id="staf-dashboard" class="page">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <!-- Halaman Utama (Main 3-Tab Interface) -->
+        <div id="main-page" class="page active">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
                 <div class="container">
-                    <span class="navbar-brand">SFDg - Dashboard Staf</span>
-                    <div class="navbar-nav ms-auto">
-                        <span class="navbar-text me-3" id="staf-user-info"></span>
-                        <button class="btn btn-outline-light btn-sm" id="staf-logout">Log Keluar</button>
-                    </div>
+                    <span class="navbar-brand mb-0 h1">SFDg - JPN Pahang</span>
                 </div>
             </nav>
 
             <div class="container mt-4">
-                <ul class="nav nav-tabs" id="stafTabs">
-                    <li class="nav-item">
-                        <button class="nav-link active" data-tab="hantar-surat">Hantar Surat Baru</button>
+                <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="hantar-tab" data-bs-toggle="tab" data-bs-target="#hantar-pane" type="button" role="tab" aria-controls="hantar-pane" aria-selected="true">
+                            <i class="bi bi-upload"></i> Hantar Surat
+                        </button>
                     </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-tab="data-surat">Data Surat</button>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tindakan-tab" data-bs-toggle="tab" data-bs-target="#tindakan-pane" type="button" role="tab" aria-controls="tindakan-pane" aria-selected="false">
+                            <i class="bi bi-pencil-square"></i> Tindakan <span id="tindakan-count" class="badge bg-danger ms-1 d-none"></span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="keluar-tab" data-bs-toggle="tab" data-bs-target="#keluar-pane" type="button" role="tab" aria-controls="keluar-pane" aria-selected="false">
+                            <i class="bi bi-check-circle"></i> Surat Keluar
+                        </button>
                     </li>
                 </ul>
 
                 <div class="tab-content mt-3">
                     <!-- Tab Hantar Surat -->
-                    <div id="hantar-surat" class="tab-pane active">
-                        <div class="card">
-                            <div class="card-header">Hantar Surat Baru</div>
+                    <div class="tab-pane fade show active" id="hantar-pane" role="tabpanel" aria-labelledby="hantar-tab">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light">Hantar Surat Baru</div>
                             <div class="card-body">
                                 <form id="upload-form">
                                     <div class="row">
@@ -103,29 +86,47 @@
                                             <input type="text" class="form-control" id="sektor-surat" required>
                                         </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Pilih Pelulus</label>
-                                        <select class="form-control" id="pelulus-surat" required>
-                                            <option value="">Sila pilih</option>
-                                        </select>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Nama Penghantar</label>
+                                            <input type="text" class="form-control" id="nama-penghantar" placeholder="Cth: Ahmad (PA Pengarah)" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Pilih Pelulus (Pengarah/TP)</label>
+                                            <select class="form-control" id="pelulus-surat" required>
+                                                <option value="">Sila pilih</option>
+                                                <!-- Pilihan diisi oleh JavaScript -->
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Muat Naik PDF</label>
+                                        <label class="form-label">Muat Naik PDF (Draf)</label>
                                         <input type="file" class="form-control" id="file-surat" accept=".pdf" required>
                                     </div>
-                                    <button type="submit" class="btn btn-success">Hantar untuk Tandatangan</button>
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-send"></i> Hantar untuk Tandatangan
+                                    </button>
                                 </form>
-                                <div id="upload-result" class="mt-3"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Tab Data Surat -->
-                    <div id="data-surat" class="tab-pane">
-                        <div class="card">
-                            <div class="card-header">Senarai Surat Dihantar</div>
+                    <!-- Tab Tindakan (Untuk Ditandatangani) -->
+                    <div class="tab-pane fade" id="tindakan-pane" role="tabpanel" aria-labelledby="tindakan-tab">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-warning-subtle">Senarai Surat Menunggu Tandatangan (Tindakan Pelulus)</div>
                             <div class="card-body">
-                                <div id="staf-surat-list"></div>
+                                <div id="tindakan-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Surat Keluar (Selesai Ditandatangani) -->
+                    <div class="tab-pane fade" id="keluar-pane" role="tabpanel" aria-labelledby="keluar-tab">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success-subtle">Senarai Surat Selesai (Telah Ditandatangani)</div>
+                            <div class="card-body">
+                                <div id="surat-keluar-list"></div>
                             </div>
                         </div>
                     </div>
@@ -133,36 +134,18 @@
             </div>
         </div>
 
-        <!-- Dashboard Pengarah/TP -->
-        <div id="pengarah-dashboard" class="page">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-                <div class="container">
-                    <span class="navbar-brand">SFDg - Dashboard Pengarah/TP</span>
-                    <div class="navbar-nav ms-auto">
-                        <span class="navbar-text me-3" id="pengarah-user-info"></span>
-                        <button class="btn btn-outline-light btn-sm" id="pengarah-logout">Log Keluar</button>
-                    </div>
-                </div>
-            </nav>
-
-            <div class="container mt-4">
-                <div class="card">
-                    <div class="card-header">Surat Menunggu Tandatangan</div>
-                    <div class="card-body">
-                        <div id="pengarah-surat-list"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Halaman Tandatangan -->
+        <!-- Halaman Tandatangan (Signing Page) -->
         <div id="signing-page" class="page">
-            <nav class="navbar navbar-dark bg-warning">
+            <nav class="navbar navbar-dark bg-warning shadow-sm">
                 <div class="container">
-                    <span class="navbar-brand text-dark">Tandatangan Surat</span>
-                    <div class="navbar-nav ms-auto">
-                        <button class="btn btn-outline-dark me-2" id="back-to-dashboard">Kembali</button>
-                        <button class="btn btn-success" id="save-signature">Simpan Tandatangan</button>
+                    <span class="navbar-brand text-dark fw-bold">Tandatangan Surat</span>
+                    <div class="navbar-nav ms-auto d-flex flex-row">
+                        <button class="btn btn-outline-dark me-2" id="back-to-dashboard">
+                            <i class="bi bi-arrow-left"></i> Kembali
+                        </button>
+                        <button class="btn btn-success" id="save-signature">
+                            <i class="bi bi-save"></i> Simpan Tandatangan
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -172,9 +155,8 @@
                     <div class="col-lg-9">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <span id="signing-title" class="fw-bold"></span>
+                                <span id="signing-title" class="fw-bold text-truncate"></span>
                                 <div>
-                                    <!-- NOTA: Paging belum dilaksanakan, kod ini hanya tandatangan halaman 1 -->
                                     <span class="badge bg-secondary me-2">Muka Surat 1 / 1</span>
                                     <button class="btn btn-sm btn-outline-danger" id="clear-signature">
                                         <i class="bi bi-trash"></i> Padam Lukisan
@@ -183,26 +165,28 @@
                             </div>
                             <div class="card-body text-center bg-light">
                                 <div class="signing-container">
+                                    <!-- Kanvas PDF untuk paparan -->
                                     <canvas id="pdf-canvas"></canvas>
+                                    <!-- Kanvas Tandatangan (Transparent) -->
                                     <canvas id="signature-canvas"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-3">
-                        <div class="card">
+                        <div class="card shadow-sm">
                             <div class="card-header">Alatan Tandatangan</div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="pen-size" class="form-label">Saiz Pen: <span id="pen-size-val">3</span></label>
+                                    <label for="pen-size" class="form-label">Saiz Pen: <span id="pen-size-val" class="fw-bold">3</span></label>
                                     <input type="range" class="form-range" id="pen-size" min="1" max="10" value="3">
                                 </div>
                                 <div class="mb-3">
                                     <label for="pen-color" class="form-label">Warna Pen</label>
                                     <input type="color" class="form-control form-control-color" id="pen-color" value="#000000">
                                 </div>
-                                <div class="alert alert-info">
-                                    <small><i class="bi bi-lightbulb"></i> Petua: Lukis tandatangan anda terus pada ruang surat di sebelah kiri.</small>
+                                <div class="alert alert-info border-0 p-2 m-0">
+                                    <small><i class="bi bi-lightbulb"></i> Petua: Lukis tandatangan anda terus pada paparan surat di sebelah kiri.</small>
                                 </div>
                             </div>
                         </div>
@@ -213,39 +197,35 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- PDF.js untuk memaparkan PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
     </script>
+    <!-- PDF-lib.js untuk mengubahsuai PDF -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
     
     <script>
-        // Konfigurasi
+        // PASTIKAN URL INI DIKEMASKINI DENGAN URL APPS SCRIPT ANDA
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzHnG30XyNX-HOC_1iJn5TarLpUgrcX46mhGrJSXiy6xZwuBIQjbzO66bWkFaqGkULHWg/exec";
         
-        // Pustaka PDF-Lib
         const { PDFDocument } = PDFLib;
 
-        let userSession = { nama: null, peranan: null, userId: null };
         let currentSurat = {
             suratId: null,
             title: null,
             fileId: null,
-            pdfBytes: null // Untuk menyimpan data PDF asal
+            pdfBytes: null, // Untuk menyimpan data PDF asal
+            idPelulus: null 
         };
         let isDrawing = false;
         let currentPenSize = 3;
         let currentPenColor = '#000000';
 
-        // Rujukan DOM
         const elements = {
             pages: document.querySelectorAll('.page'),
-            loginPage: document.getElementById('login-page'),
-            stafDashboard: document.getElementById('staf-dashboard'),
-            pengarahDashboard: document.getElementById('pengarah-dashboard'),
+            mainPage: document.getElementById('main-page'),
             signingPage: document.getElementById('signing-page'),
-            loginForm: document.getElementById('login-form'),
-            loginError: document.getElementById('login-error'),
             loadingOverlay: document.getElementById('loading-overlay')
         };
 
@@ -259,31 +239,19 @@
             document.getElementById(pageId).classList.add('active');
         }
 
-        function showError(element, message) {
-            element.textContent = message;
-            element.classList.remove('d-none');
-        }
-
-        function hideError(element) {
-            element.classList.add('d-none');
-        }
-
-        // API Call
+        // -----------------------------------------------------------
+        // 1. API CALLING (TIADA USER ID)
+        // -----------------------------------------------------------
         async function apiCall(action, payload = {}, method = 'POST') {
             showLoading(true);
             let url = GAS_API_URL;
-            let options = { method, mode: 'cors', redirect: 'follow' }; // Tambah 'redirect: follow'
-            
-            if (userSession.userId) {
-                payload.userId = userSession.userId;
-            }
+            let options = { method, mode: 'cors', redirect: 'follow' };
             
             if (method === 'GET') {
                 const params = new URLSearchParams({ action, ...payload });
                 url += `?${params.toString()}`;
             } else {
-                // Jangan guna 'Content-Type' untuk POST standard ke GAS,
-                // biar ia guna 'text/plain'
+                options.headers = { 'Content-Type': 'application/json' };
                 options.body = JSON.stringify({ action, ...payload });
             }
             
@@ -302,60 +270,18 @@
             }
         }
 
-        // Login Handler
-        async function handleLogin(e) {
-            e.preventDefault();
-            hideError(elements.loginError);
-            
-            const formData = {
-                idLogMasuk: document.getElementById('username').value,
-                password: document.getElementById('password').value
-            };
-            
-            try {
-                // 'login' adalah kes khas, ia tidak perlukan 'userId'
-                const result = await apiCall("login", formData, 'POST');
-                userSession = result;
-                sessionStorage.setItem("sfdg_session", JSON.stringify(userSession));
-                showApp();
-            } catch (error) {
-                showError(elements.loginError, error.message);
-            }
-        }
-
-        // Logout Handler
-        function handleLogout() {
-            sessionStorage.removeItem("sfdg_session");
-            userSession = { nama: null, peranan: null, userId: null };
-            currentSurat = { suratId: null, title: null, fileId: null, pdfBytes: null };
-            showPage('login-page');
-            document.getElementById('login-form').reset();
-        }
-
-        // Show Appropriate Dashboard
-        function showApp() {
-            if (!userSession || !userSession.peranan) {
-                showPage('login-page');
-                return;
-            }
-            if (userSession.peranan === 'staf') {
-                showStafDashboard();
-            } else if (userSession.peranan === 'pengarah' || userSession.peranan === 'tp') {
-                showPengarahDashboard();
-            }
-        }
-
-        // Staf Dashboard Functions
-        async function showStafDashboard() {
-            showPage('staf-dashboard');
-            document.getElementById('staf-user-info').textContent = `Selamat datang, ${userSession.nama}`;
+        // -----------------------------------------------------------
+        // 2. DATA LOADING & DISPLAY
+        // -----------------------------------------------------------
+        async function loadAllData() {
             await loadPelulusList();
-            await loadStafSuratList();
-            setupStafTabs();
+            await loadTindakanList();
+            await loadSuratKeluarList();
         }
 
         async function loadPelulusList() {
             try {
+                // Memanggil Apps Script untuk mendapatkan senarai pelulus hardcoded
                 const pelulus = await apiCall('getSenaraiPelulus', {}, 'GET');
                 const select = document.getElementById('pelulus-surat');
                 select.innerHTML = '<option value="">Sila pilih</option>';
@@ -370,82 +296,131 @@
                 console.error('Gagal memuat senarai pelulus:', error);
             }
         }
-
-        async function loadStafSuratList() {
+        
+        async function loadTindakanList() {
             try {
-                const suratList = await apiCall('getSuratDihantar', {}, 'GET');
-                const container = document.getElementById('staf-surat-list');
-                
-                if (suratList.length === 0) {
-                    container.innerHTML = '<p class="text-muted">Tiada surat ditemui.</p>';
-                    return;
-                }
-                
-                container.innerHTML = suratList.map(surat => `
-                    <div class="surat-item ${surat.status === 'selesai' ? 'status-selesai' : 'status-draf'}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">${surat.tajuk}</h6>
-                                <small class="text-muted">Sektor: ${surat.sektor} | Tarikh: ${new Date(surat.tarikh).toLocaleDateString('ms-MY')}</small>
-                            </div>
-                            <div>
-                                <span class="badge ${surat.status === 'selesai' ? 'bg-success' : 'bg-warning text-dark'}">
-                                    ${surat.status === 'selesai' ? 'Selesai' : 'Draf'}
-                                </span>
-                                ${surat.status === 'selesai' ? 
-                                    `<button class="btn btn-sm btn-primary ms-2" onclick="downloadSignedPDF('${surat.fileIdSigned}')">Muat Turun</button>` : 
-                                    ''
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Gagal memuat senarai surat:', error);
-            }
-        }
-
-        // Pengarah Dashboard Functions
-        async function showPengarahDashboard() {
-            showPage('pengarah-dashboard');
-            document.getElementById('pengarah-user-info').textContent = `Selamat datang, ${userSession.nama}`;
-            await loadPengarahSuratList();
-        }
-
-        async function loadPengarahSuratList() {
-            try {
-                const suratList = await apiCall('getSuratUntukDitandatangani', {}, 'GET');
-                const container = document.getElementById('pengarah-surat-list');
+                const suratList = await apiCall('getSemuaSuratUntukDitandatangani', {}, 'GET');
+                const container = document.getElementById('tindakan-list');
+                const countBadge = document.getElementById('tindakan-count');
                 
                 if (suratList.length === 0) {
                     container.innerHTML = '<p class="text-muted">Tiada surat menunggu tandatangan.</p>';
+                    countBadge.classList.add('d-none');
                     return;
                 }
+                
+                countBadge.textContent = suratList.length;
+                countBadge.classList.remove('d-none');
                 
                 container.innerHTML = suratList.map(surat => `
                     <div class="surat-item status-draf">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="mb-1">${surat.tajuk}</h6>
-                                <small class="text-muted">Sektor: ${surat.sektor} | Tarikh: ${new Date(surat.tarikh).toLocaleDateString('ms-MY')}</small>
+                                <small class="text-muted">
+                                    Pelulus: <strong>${surat.namaPelulus}</strong> | Penghantar: ${surat.idPenghantar}
+                                </small>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="openSigningPage(${surat.suratId}, '${surat.tajuk}', '${surat.fileIdDraf}')">
+                            <button class="btn btn-primary btn-sm" 
+                                    onclick="openSigningPage(${surat.suratId}, '${surat.tajuk.replace(/'/g, "\\'")}', '${surat.fileIdDraf}', '${surat.idPelulus}')">
                                 <i class="bi bi-pencil-square"></i> Tandatangani
                             </button>
                         </div>
                     </div>
                 `).join('');
             } catch (error) {
-                console.error('Gagal memuat senarai surat:', error);
+                console.error('Gagal memuat senarai surat untuk tindakan:', error);
+            }
+        }
+        
+        async function loadSuratKeluarList() {
+            try {
+                const suratList = await apiCall('getSemuaSuratKeluar', {}, 'GET');
+                const container = document.getElementById('surat-keluar-list');
+                
+                if (suratList.length === 0) {
+                    container.innerHTML = '<p class="text-muted">Tiada surat selesai ditemui.</p>';
+                    return;
+                }
+                
+                container.innerHTML = suratList.map(surat => `
+                    <div class="surat-item status-selesai">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">${surat.tajuk}</h6>
+                                <small class="text-muted">
+                                    Ditandatangani oleh: <strong>${surat.namaPelulus}</strong> | Status: 
+                                    <span class="fw-bold text-success">Selesai</span>
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-primary ms-2" onclick="downloadSignedPDF('${surat.fileIdSigned}')">
+                                <i class="bi bi-download"></i> Muat Turun
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Gagal memuat senarai surat keluar:', error);
             }
         }
 
-        // Signing Page Functions
-        async function openSigningPage(suratId, title, fileId) {
-            currentSurat = { suratId, title, fileId, pdfBytes: null }; // Reset
+        // -----------------------------------------------------------
+        // 3. UPLOAD AND PDF HANDLING
+        // -----------------------------------------------------------
+        
+        async function handleUploadSurat(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('file-surat');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Sila pilih fail PDF.');
+                return;
+            }
+            
+            try {
+                const base64 = await fileToBase64(file);
+                const formData = {
+                    fileBase64: base64.split(',')[1],
+                    fileName: file.name,
+                    tajuk: document.getElementById('tajuk-surat').value,
+                    sektor: document.getElementById('sektor-surat').value,
+                    idPenghantar: document.getElementById('nama-penghantar').value, 
+                    idPelulus: document.getElementById('pelulus-surat').value
+                };
+                
+                await apiCall('uploadDrafSurat', formData);
+                alert('Surat berjaya dihantar untuk tandatangan!');
+                document.getElementById('upload-form').reset();
+                
+                // Muat semula data dan tukar tab ke Tindakan
+                await loadAllData();
+                bootstrap.Tab.getInstance(document.getElementById('tindakan-tab')).show();
+                
+            } catch (error) {
+                console.error('Gagal memuat naik surat:', error);
+                alert('Gagal memuat naik surat: ' + error.message);
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        // -----------------------------------------------------------
+        // 4. SIGNING LOGIC
+        // -----------------------------------------------------------
+
+        async function openSigningPage(suratId, title, fileId, idPelulus) {
+            currentSurat = { suratId, title, fileId, pdfBytes: null, idPelulus: idPelulus };
             showPage('signing-page');
             document.getElementById('signing-title').textContent = title;
-            clearSignatureCanvas(); // Kosongkan tandatangan lama
+            clearSignatureCanvas();
             await loadPDFForSigning(fileId);
             setupSignatureCanvas();
         }
@@ -453,32 +428,27 @@
         async function loadPDFForSigning(fileId) {
             try {
                 const pdfData = await apiCall('getPDFData', { fileId }, 'GET');
-                
-                // Nyahkod Base64 ke 'raw bytes' (String)
                 const pdfBytesStr = atob(pdfData.base64);
-                // Tukar 'raw bytes' ke Uint8Array, yang diperlukan oleh pdf.js dan pdf-lib
                 const pdfBytes = new Uint8Array(pdfBytesStr.length);
                 for (let i = 0; i < pdfBytesStr.length; i++) {
                     pdfBytes[i] = pdfBytesStr.charCodeAt(i);
                 }
                 
-                // Simpan 'bytes' PDF asal untuk digunakan oleh pdf-lib semasa menyimpan
                 currentSurat.pdfBytes = pdfBytes;
                 
-                // Muat PDF ke pdf.js untuk paparan
+                // Paparkan PDF menggunakan pdf.js
                 const pdf = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
-                const page = await pdf.getPage(1); // Ambil muka surat 1
+                const page = await pdf.getPage(1);
                 
                 const viewport = page.getViewport({ scale: 1.5 });
                 const canvas = document.getElementById('pdf-canvas');
                 const ctx = canvas.getContext('2d');
-                
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 
                 await page.render({ canvasContext: ctx, viewport }).promise;
                 
-                // Set saiz kanvas tandatangan (overlay) supaya sama
+                // Tetapkan saiz kanvas tandatangan agar sepadan dengan PDF
                 const sigCanvas = document.getElementById('signature-canvas');
                 sigCanvas.width = canvas.width;
                 sigCanvas.height = canvas.height;
@@ -493,22 +463,25 @@
             const canvas = document.getElementById('signature-canvas');
             const ctx = canvas.getContext('2d');
             
-            // Setup drawing
+            // Event Listeners untuk lukisan
             canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stopDrawing);
             canvas.addEventListener('mouseout', stopDrawing);
             
-            // Touch events for mobile devices
+            // Event Listeners untuk sentuhan (touch)
             canvas.addEventListener('touchstart', handleTouch);
             canvas.addEventListener('touchmove', handleTouch);
             canvas.addEventListener('touchend', stopDrawing);
             
             function getMousePos(canvas, evt) {
                 const rect = canvas.getBoundingClientRect();
+                const clientX = evt.clientX || (evt.touches && evt.touches[0] && evt.touches[0].clientX);
+                const clientY = evt.clientY || (evt.touches && evt.touches[0] && evt.touches[0].clientY);
+                
                 return {
-                    x: (evt.clientX || evt.touches[0].clientX) - rect.left,
-                    y: (evt.clientY || evt.touches[0].clientY) - rect.top
+                    x: clientX ? clientX - rect.left : 0,
+                    y: clientY ? clientY - rect.top : 0
                 };
             }
 
@@ -516,7 +489,8 @@
                 e.preventDefault();
                 if (e.touches.length > 0) {
                     const touch = e.touches[0];
-                    const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+                    const eventType = e.type === 'touchstart' ? 'mousedown' : 'mousemove';
+                    const mouseEvent = new MouseEvent(eventType, {
                         clientX: touch.clientX,
                         clientY: touch.clientY
                     });
@@ -533,13 +507,10 @@
             
             function draw(e) {
                 if (!isDrawing) return;
-                
                 const pos = getMousePos(canvas, e);
-
                 ctx.lineWidth = currentPenSize;
                 ctx.lineCap = 'round';
                 ctx.strokeStyle = currentPenColor;
-                
                 ctx.lineTo(pos.x, pos.y);
                 ctx.stroke();
                 ctx.beginPath();
@@ -558,38 +529,36 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // --- FUNGSI 'SAVE' YANG DIBETULKAN ---
         async function saveSignature() {
             if (!currentSurat.pdfBytes) {
                 alert("Ralat: Data PDF asal tidak ditemui.");
+                return;
+            }
+            if (!currentSurat.idPelulus) {
+                alert("Ralat: ID Pelulus tidak ditemui. Sila kembali ke dashboard.");
                 return;
             }
 
             try {
                 showLoading(true);
 
-                // 1. Muat PDF asal ke pdf-lib
                 const pdfDoc = await PDFDocument.load(currentSurat.pdfBytes);
-                
-                // 2. Dapatkan kanvas tandatangan (overlay)
                 const sigCanvas = document.getElementById('signature-canvas');
-                // Semak jika kanvas kosong
+                
                 if (isCanvasBlank(sigCanvas)) {
                     alert("Sila letakkan tandatangan anda sebelum menyimpan.");
                     showLoading(false);
                     return;
                 }
-                const sigPngUrl = sigCanvas.toDataURL('image/png');
                 
-                // 3. 'Embed' gambar tandatangan (PNG) ke dalam dokumen PDF
+                // Tukar tandatangan ke PNG dan lekatkan ke PDF
+                const sigPngUrl = sigCanvas.toDataURL('image/png');
                 const sigPng = await pdfDoc.embedPng(sigPngUrl);
                 
-                // 4. Dapatkan saiz halaman (kod ini anggap halaman 1)
-                const page = pdfDoc.getPage(0); // pdf-lib guna 'zero-index' (0 = halaman 1)
+                const page = pdfDoc.getPage(0); // Halaman pertama
                 const { width, height } = page.getSize();
                 
-                // 5. Lukis gambar tandatangan ke atas halaman PDF
-                // Gambar tandatangan (dari kanvas) perlu diskalakan untuk muat
+                // Lukis imej tandatangan di atas PDF
                 page.drawImage(sigPng, {
                     x: 0,
                     y: 0,
@@ -598,11 +567,9 @@
                     opacity: 1,
                 });
 
-                // 6. Simpan dokumen PDF yang telah diubah suai sebagai bytes
                 const modifiedPdfBytes = await pdfDoc.save();
                 
-                // 7. Tukar 'bytes' (Uint8Array) ke Base64
-                // Kaedah ini lebih cekap untuk 'binary'
+                // Tukar Uint8Array kepada Base64
                 let binary = '';
                 const len = modifiedPdfBytes.byteLength;
                 for (let i = 0; i < len; i++) {
@@ -610,18 +577,20 @@
                 }
                 const modifiedPdfBase64 = btoa(binary);
 
-                // 8. Hantar Base64 PDF yang sebenar ke backend
+                // Hantar ke Apps Script
                 await apiCall('saveSignedPDF', {
                     signedPdfBase64: modifiedPdfBase64,
-                    suratId: currentSurat.suratId
+                    suratId: currentSurat.suratId,
+                    idPelulus: currentSurat.idPelulus 
                 });
                 
                 alert('Surat berjaya ditandatangani dan disimpan!');
-                showPengarahDashboard();
+                showPage('main-page');
+                await loadAllData(); 
                 
             } catch (error) {
                 console.error('Gagal menyimpan tandatangan:', error);
-                alert('Gagal menyimpan tandatangan.');
+                alert('Gagal menyimpan tandatangan: ' + error.message);
             } finally {
                 showLoading(false);
             }
@@ -634,32 +603,26 @@
             );
             return !pixelBuffer.some(color => color !== 0);
         }
-        // --- TAMAT FUNGSI 'SAVE' YANG DIBETULKAN ---
-
 
         function downloadSignedPDF(fileId) {
-            // Beri pautan terus untuk muat turun
+            // Membuka pautan muat turun Google Drive
             window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
         }
 
-        // Setup Event Listeners
+        // -----------------------------------------------------------
+        // 5. INITIALIZATION & EVENT LISTENERS
+        // -----------------------------------------------------------
+        
         function setupEventListeners() {
-            // Login
-            elements.loginForm.addEventListener('submit', handleLogin);
-            
-            // Logout buttons
-            document.getElementById('staf-logout')?.addEventListener('click', handleLogout);
-            document.getElementById('pengarah-logout')?.addEventListener('click', handleLogout);
-            
             // Staf form
-            document.getElementById('upload-form')?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await handleUploadSurat();
-            });
+            document.getElementById('upload-form')?.addEventListener('submit', handleUploadSurat);
             
-            // Signing page
+            // Signing page controls
             document.getElementById('save-signature')?.addEventListener('click', saveSignature);
-            document.getElementById('back-to-dashboard')?.addEventListener('click', () => showApp());
+            document.getElementById('back-to-dashboard')?.addEventListener('click', () => {
+                showPage('main-page');
+                loadAllData();
+            });
             document.getElementById('clear-signature')?.addEventListener('click', clearSignatureCanvas);
             
             // Pen settings
@@ -670,94 +633,27 @@
             document.getElementById('pen-color')?.addEventListener('input', (e) => {
                 currentPenColor = e.target.value;
             });
-        }
-
-        // Staf Tab System
-        function setupStafTabs() {
-            const tabButtons = document.querySelectorAll('#stafTabs .nav-link');
-            const tabPanes = document.querySelectorAll('.tab-pane');
             
-            tabButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // Remove active class from all buttons and panes
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabPanes.forEach(pane => pane.classList.remove('active', 'show'));
-                    
-                    // Add active class to clicked button and corresponding pane
-                    button.classList.add('active');
-                    const tabId = button.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active', 'show');
-                });
+            // Muat semula data apabila tab ditukar
+            const tabEl = document.getElementById('mainTabs');
+            tabEl.addEventListener('shown.bs.tab', (event) => {
+                if (event.target.id === 'tindakan-tab') {
+                    loadTindakanList();
+                } else if (event.target.id === 'keluar-tab') {
+                    loadSuratKeluarList();
+                }
             });
-            // Pastikan tab pertama betul-betul aktif semasa muat
-            document.querySelector('#stafTabs .nav-link.active').click();
+
         }
 
-
-        // Handle File Upload
-        async function handleUploadSurat() {
-            const fileInput = document.getElementById('file-surat');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                alert('Sila pilih fail PDF.');
-                return;
-            }
-            
-            try {
-                const base64 = await fileToBase64(file);
-                const formData = {
-                    fileBase64: base64.split(',')[1],
-                    fileName: file.name,
-                    tajuk: document.getElementById('tajuk-surat').value,
-                    sektor: document.getElementById('sektor-surat').value,
-                    idPelulus: document.getElementById('pelulus-surat').value
-                };
-                
-                await apiCall('uploadDrafSurat', formData);
-                alert('Surat berjaya dihantar untuk tandatangan!');
-                document.getElementById('upload-form').reset();
-                await loadStafSuratList();
-                // Tukar ke tab 'data-surat'
-                document.querySelector('button[data-tab="data-surat"]').click();
-                
-            } catch (error) {
-                console.error('Gagal memuat naik surat:', error);
-                alert('Gagal memuat naik surat: ' + error.message);
-            }
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // Check existing session
-        function checkSession() {
-            const savedSession = sessionStorage.getItem("sfdg_session");
-            if (savedSession) {
-                userSession = JSON.parse(savedSession);
-                showApp();
-            } else {
-                showPage('login-page'); // Pastikan mula di log masuk jika tiada sesi
-            }
-        }
-
-        // Initialize app
         function initializeApp() {
             setupEventListeners();
-            checkSession();
+            loadAllData(); 
         }
 
-        // Start the application
         document.addEventListener('DOMContentLoaded', initializeApp);
 
-        // Global functions for HTML onclick
+        // Global functions (untuk digunakan dalam onclick HTML)
         window.openSigningPage = openSigningPage;
         window.downloadSignedPDF = downloadSignedPDF;
     </script>
