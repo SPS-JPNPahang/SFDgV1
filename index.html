@@ -210,8 +210,8 @@
     <!-- ============================================= -->
     <script>
         // --- KONFIGURASI PENTING ---
-        // GANTIKAN DENGAN URL WEB APP ANDA YANG BARU (DARI AKAUN PERIBADI)
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzX2h_vgDIFsa7tql2t21FDCfOAmiNhtiVS89hnpNMKxm3n-mEu_I83HM5v7N1tT9p40w/exec";
+        // GANTIKAN DENGAN URL WEB APP ANDA YANG BARU (DARI AKAUN PERIBADI SETELAH DEPLOY BARU)
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbw9roHPNxjgWoxvYVUUvbdTQdvPmAemVB5QnHy-fmj4MMp2H8G6O8Z7B01smywWG8ooMQ/exec"; // <-- GANTI INI
 
         // Pembolehubah Global
         let currentUser = null; // { Nama: "Ali (Staf)", Jawatan: "Staf" }
@@ -317,7 +317,18 @@
                 const response = await fetch(url, options);
                 
                 if (!response.ok) {
-                    throw new Error(`Ralat Rangkaian: ${response.statusText}`);
+                    // Cuba dapatkan teks ralat jika ada
+                    let errorText = response.statusText;
+                    try {
+                        const errorBody = await response.text();
+                        // Google Apps Script kadangkala membalas HTML untuk redirect atau ralat auth
+                        if (errorBody.includes('<title>Sign in</title>')) {
+                             errorText = "Redirected to login (check permissions/ownership)";
+                        } else {
+                             errorText += `: ${errorBody.substring(0, 100)}`; // Tunjuk permulaan ralat
+                        }
+                    } catch (e) { /* Abaikan jika teks tidak boleh dibaca */ }
+                    throw new Error(`Ralat Rangkaian: ${response.status} ${errorText}`);
                 }
                 
                 const result = await response.json();
@@ -330,7 +341,7 @@
 
             } catch (error) {
                 console.error('Ralat fetchFromGas:', error);
-                showToast(`[RALAT] ${error.message}`, true);
+                showToast(`[RALAT] Gagal menghubungi pelayan: ${error.message}`, true); // Mesej lebih jelas
                 throw error; // Lempar semula ralat untuk ditangkap oleh pemanggil
             }
         }
@@ -340,6 +351,7 @@
         // 1. Muatkan senarai pengguna untuk modal login
         async function loadUsersForLogin() {
             const userSelect = document.getElementById('userSelect');
+            userSelect.innerHTML = '<option value="" disabled selected>Memuatkan pengguna...</option>'; // Status memuatkan
             try {
                 const data = await fetchFromGas('getUsers');
                 allUsersList = data.users; // Simpan senarai penuh
@@ -353,14 +365,16 @@
                     userSelect.appendChild(option);
                 });
             } catch (error) {
-                userSelect.innerHTML = '<option value="" disabled selected>Gagal memuatkan pengguna</option>';
+                userSelect.innerHTML = '<option value="" disabled selected>Ralat memuatkan pengguna</option>';
                 console.error('Gagal memuatkan pengguna:', error);
+                // Toast sudah dipaparkan oleh fetchFromGas
             }
         }
 
         // 2. Muatkan senarai pelulus (Signatory) untuk borang hantar surat
         async function loadSignatoriesForForm() {
             const signatoryList = document.getElementById('signatoryList');
+             signatoryList.innerHTML = '<option value="" disabled selected>Memuatkan pelulus...</option>'; // Status memuatkan
             try {
                 // Panggil 'getSenaraiPelulus' yang baru
                 const data = await fetchFromGas('getSenaraiPelulus');
@@ -373,8 +387,9 @@
                     signatoryList.appendChild(option);
                 });
             } catch (error) {
-                signatoryList.innerHTML = '<option value="" disabled selected>Gagal memuatkan pelulus</option>';
+                signatoryList.innerHTML = '<option value="" disabled selected>Ralat memuatkan pelulus</option>';
                 console.error('Gagal memuatkan pelulus:', error);
+                 // Toast sudah dipaparkan oleh fetchFromGas
             }
         }
         
@@ -436,7 +451,7 @@
                     role: currentUser.Jawatan 
                 });
 
-                if (data.letters.length === 0) {
+                if (!data.letters || data.letters.length === 0) { // Pemeriksaan tambahan
                     tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">Tiada surat ditemui.</td></tr>';
                     return;
                 }
@@ -452,30 +467,31 @@
                     // Logik Butang Tindakan
                     let actionButton = '';
                     if (isStaf) {
-                        if (letter.Status === 'Draf') {
+                        if (letter.Status === 'Draf' && letter.DraftFileUrl) { // Pastikan URL ada
                             actionButton = `<a href="${letter.DraftFileUrl}" target="_blank" class="text-gray-500 hover:text-gray-700" title="Lihat Draf"><i class="fas fa-eye"></i></a>`;
-                        } else {
+                        } else if (letter.Status !== 'Draf' && letter.SignedFileUrl) { // Pastikan URL ada
                             actionButton = `<a href="${letter.SignedFileUrl}" target="_blank" class="text-green-600 hover:text-green-800" title="Muat Turun Selesai"><i class="fas fa-download"></i></a>`;
+                        } else {
+                            actionButton = `<span class="text-gray-400" title="URL tidak tersedia"><i class="fas fa-link-slash"></i></span>`; // Ikon jika URL tiada
                         }
                     } else { // Pengarah / TP
-                        if (letter.Status === 'Draf') {
+                        if (letter.Status === 'Draf' && letter.DraftFileID) { // Pastikan ID ada
                             actionButton = `<button class="text-blue-600 hover:text-blue-800" title="Buka & Tandatangan" onclick="openSignModal('${letter.DraftFileID}', '${letter.Tajuk}', '${letter.LetterID}')">
                                 <i class="fas fa-file-signature"></i>
                             </button>`;
                         } else {
-                            // Tiada tindakan jika sudah selesai untuk Pengarah
                             actionButton = `<span class="text-gray-400" title="Selesai"><i class="fas fa-check"></i></span>`;
                         }
                     }
 
                     tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(letter.Timestamp).toLocaleDateString('ms-MY')}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${letter.Tajuk}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" ${isStaf ? 'style="display:none;"' : ''}>${letter.Staf}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" ${!isStaf ? 'style="display:none;"' : ''}>${letter.Signatory}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${letter.Timestamp ? new Date(letter.Timestamp).toLocaleDateString('ms-MY') : '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${letter.Tajuk || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" ${isStaf ? 'style="display:none;"' : ''}>${letter.Staf || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" ${!isStaf ? 'style="display:none;"' : ''}>${letter.Signatory || '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                ${letter.Status}
+                                ${letter.Status || 'Tidak diketahui'}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -486,6 +502,7 @@
                 });
             } catch (error) {
                 tableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Gagal memuatkan data surat: ${error.message}</td></tr>`;
+                 // Toast sudah dipaparkan oleh fetchFromGas
             }
         }
 
@@ -511,26 +528,38 @@
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = async () => {
-                    const pdfBase64 = reader.result.split(',')[1];
-                    
-                    const payload = {
-                        stafName: currentUser.Nama,
-                        tajuk: tajuk,
-                        signatory: signatory,
-                        fileName: file.name,
-                        pdfBase64: pdfBase64
-                    };
+                   try { // Tambah try...catch dalam onload
+                        const pdfBase64 = reader.result.split(',')[1];
+                        
+                        const payload = {
+                            stafName: currentUser.Nama,
+                            tajuk: tajuk,
+                            signatory: signatory,
+                            fileName: file.name,
+                            pdfBase64: pdfBase64
+                        };
 
-                    await fetchFromGas('uploadDraft', payload, 'POST');
-                    
-                    closeModal('loadingModal');
-                    showToast('Surat berjaya dihantar!', false);
-                    document.getElementById('upload-form').reset();
-                    showPage('senarai-surat'); // Kembali ke senarai
+                        await fetchFromGas('uploadDraft', payload, 'POST');
+                        
+                        closeModal('loadingModal');
+                        showToast('Surat berjaya dihantar!', false);
+                        document.getElementById('upload-form').reset();
+                        showPage('senarai-surat'); // Kembali ke senarai
+                   } catch (innerError) {
+                       closeModal('loadingModal');
+                       // fetchFromGas sudah memaparkan toast ralat
+                       console.error("Ralat dalam reader.onload:", innerError);
+                   }
                 };
+                 reader.onerror = (error) => { // Tambah onerror
+                    closeModal('loadingModal');
+                    showToast('Gagal membaca fail PDF.', true);
+                    console.error("Ralat FileReader:", error);
+                 };
             } catch (error) {
                 closeModal('loadingModal');
-                // showToast telah dipanggil di dalam fetchFromGas
+                // fetchFromGas sudah memaparkan toast ralat
+                 console.error("Ralat luar:", error);
             }
         });
 
@@ -546,6 +575,9 @@
             // Reset data
             currentSignPdfData = { draftFileId, tajuk, letterId };
             document.getElementById('signModalTitle').textContent = `Tandatangan: ${tajuk}`;
+            // Set warna stroke (cth: hitam) dan ketebalan
+            signCtx.strokeStyle = "#000000"; 
+            signCtx.lineWidth = 2; 
             signCtx.clearRect(0, 0, signCanvas.width, signCanvas.height);
             
             loadingText.textContent = 'Memuatkan draf PDF...';
@@ -557,10 +589,11 @@
                 currentSignPdfData.pdfBase64 = data.pdfBase64; // Simpan untuk save
 
                 const pdfData = atob(data.pdfBase64);
-                const pdfDoc = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                // Guna Uint8Array untuk pdf.js v2+
+                const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfData.split('').map(char => char.charCodeAt(0))) }).promise; 
                 
                 // Papar mukasurat pertama
-                const page = await pdfDoc.getPage(1);
+                const page = await pdfDoc.getPage(1); // Mula dari 1
                 const viewport = page.getViewport({ scale: 1.5 });
 
                 // Set saiz kanvas berdasarkan saiz PDF
@@ -568,7 +601,8 @@
                 pdfCanvas.height = viewport.height;
                 signCanvas.width = viewport.width;
                 signCanvas.height = viewport.height;
-                pdfViewer.style.height = `${viewport.height}px`;
+                // Selaraskan ketinggian viewer
+                pdfViewer.style.height = `${Math.min(viewport.height, window.innerHeight * 0.6)}px`; // Hadkan ketinggian modal
 
                 const renderContext = {
                     canvasContext: pdfCanvas.getContext('2d'),
@@ -581,7 +615,8 @@
             } catch (error) {
                 closeModal('loadingModal');
                 closeModal('signModal');
-                // showToast telah dipanggil di dalam fetchFromGas
+                 // fetchFromGas sudah memaparkan toast ralat
+                 console.error("Ralat membuka modal tandatangan:", error);
             }
         }
 
@@ -589,37 +624,47 @@
         function startDrawing(e) {
             drawing = true;
             signCtx.beginPath();
-            signCtx.moveTo(e.offsetX, e.offsetY);
+            // Dapatkan posisi relatif kepada kanvas
+            const rect = signCanvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            signCtx.moveTo(x, y);
         }
 
         function draw(e) {
             if (!drawing) return;
-            signCtx.lineTo(e.offsetX, e.offsetY);
+             // Dapatkan posisi relatif kepada kanvas
+            const rect = signCanvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            signCtx.lineTo(x, y);
             signCtx.stroke();
         }
 
         function stopDrawing() {
-            drawing = false;
+            if (drawing) {
+                signCtx.closePath(); // Tutup path selepas melukis
+                drawing = false;
+            }
         }
 
+        // Acara Tetikus
         signCanvas.addEventListener('mousedown', startDrawing);
         signCanvas.addEventListener('mousemove', draw);
         signCanvas.addEventListener('mouseup', stopDrawing);
-        signCanvas.addEventListener('mouseout', stopDrawing);
-        // Untuk mudah alih
+        signCanvas.addEventListener('mouseout', stopDrawing); 
+
+        // Acara Sentuhan (Touch Events)
         signCanvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const rect = signCanvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            startDrawing({ offsetX: touch.clientX - rect.left, offsetY: touch.clientY - rect.top });
-        });
+            e.preventDefault(); // Elak skrol
+            startDrawing(e.touches[0]); 
+        }, { passive: false }); // Perlukan passive: false untuk preventDefault
         signCanvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const rect = signCanvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            draw({ offsetX: touch.clientX - rect.left, offsetY: touch.clientY - rect.top });
-        });
+            e.preventDefault(); // Elak skrol
+            draw(e.touches[0]);
+        }, { passive: false });
         signCanvas.addEventListener('touchend', stopDrawing);
+        signCanvas.addEventListener('touchcancel', stopDrawing); // Jika sentuhan dibatalkan
 
         // Padam tandatangan
         document.getElementById('clear-signature').addEventListener('click', () => {
@@ -633,12 +678,19 @@
 
         // Simpan tandatangan
         document.getElementById('save-signature').addEventListener('click', async () => {
+             // Semak jika kanvas kosong
+            if (isCanvasBlank(signCanvas)) {
+                showToast('Sila lukis tandatangan anda dahulu.', true);
+                return;
+            }
+            
             loadingText.textContent = 'Menyimpan tandatangan...';
             showModal('loadingModal');
 
             try {
                 // 1. Dapatkan tandatangan sebagai imej PNG Base64
-                const signatureImageBase64 = signCanvas.toDataURL('image/png');
+                // Guna latar belakang lutsinar jika boleh
+                const signatureImageBase64 = signCanvas.toDataURL('image/png'); 
                 
                 // 2. Muatkan PDF asal menggunakan pdf-lib
                 const pdfBytes = await fetch(`data:application/pdf;base64,${currentSignPdfData.pdfBase64}`).then(res => res.arrayBuffer());
@@ -647,31 +699,30 @@
                 // 3. Masukkan imej tandatangan ke dalam PDF
                 const signatureImage = await pdfDoc.embedPng(signatureImageBase64);
                 
-                // Anda mungkin mahu tandatangan pada mukasurat terakhir, bukan pertama
-                // const page = pdfDoc.getPage(0); // Mukasurat pertama
                 const pages = pdfDoc.getPages();
-                const firstPage = pages[0];
+                const firstPage = pages[0]; // Letak di mukasurat pertama
 
-                // Skala saiz imej (anda boleh ubah suai ini)
-                const { width, height } = signatureImage.scale(0.5); // Skala 50%
+                // Skala saiz imej
+                const { width, height } = signatureImage.scale(0.25); // Skala 25% (lebih kecil)
                 
-                // Letak tandatangan (anda mungkin perlu ubah suai koordinat X, Y)
-                // Koordinat pdf-lib bermula dari sudut bawah-kiri
+                // Letak tandatangan (di sudut bawah-kanan)
+                 const padding = 50; 
                 firstPage.drawImage(signatureImage, {
-                    x: 50, // Ubah suai
-                    y: firstPage.getHeight() - height - 50, // Letak 50px dari atas
+                    x: firstPage.getWidth() - width - padding, // Align kanan
+                    y: padding,                            // Align bawah
                     width: width,
                     height: height,
                 });
                 
                 // 4. Simpan PDF baru sebagai Base64
                 const newPdfBytes = await pdfDoc.save();
-                const newPdfBase64 = btoa(String.fromCharCode.apply(null, newPdfBytes));
+                // Cara menukar ArrayBuffer ke Base64 yang lebih selamat
+                const newPdfBase64 = btoa(new Uint8Array(newPdfBytes).reduce((data, byte) => data + String.fromCharCode(byte), ''));
 
                 // 5. Hantar ke Google Apps Script
                 await fetchFromGas('saveSigned', {
                     draftFileId: currentSignPdfData.draftFileId,
-                    fileName: `(Telah Ditandatangani) ${currentSignPdfData.tajuk}.pdf`,
+                    fileName: `(TT) ${currentSignPdfData.tajuk}.pdf`, // Nama fail lebih pendek
                     signedPdfBase64: newPdfBase64
                 }, 'POST');
                 
@@ -683,9 +734,20 @@
             } catch (error) {
                 closeModal('loadingModal');
                 console.error('Ralat menyimpan tandatangan:', error);
-                showToast(`Gagal menyimpan: ${error.message}`, true);
+                 // Toast sudah dipaparkan oleh fetchFromGas
+                 showToast(`Gagal menyimpan: ${error.message}`, true); // Pastikan ralat dipaparkan
             }
         });
+
+        // Fungsi untuk menyemak jika kanvas kosong
+        function isCanvasBlank(canvas) {
+            const context = canvas.getContext('2d');
+            const pixelBuffer = new Uint32Array(
+                context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
+            );
+            // Jika semua piksel adalah lutsinar (alpha=0), kanvas kosong
+            return !pixelBuffer.some(pixel => pixel !== 0); 
+        }
 
         // --- PENGURUSAN SESI (SESSION) ---
 
@@ -693,9 +755,8 @@
         document.getElementById('logout-button').addEventListener('click', () => {
             currentUser = null;
             localStorage.removeItem('sfdgUser');
-            showModal('roleModal'); // Tunjukkan semula modal login
-            // Kosongkan jadual
-            document.getElementById('letter-table-body').innerHTML = '';
+            // Muatkan semula halaman untuk reset sepenuhnya
+            window.location.reload(); 
         });
 
         // Pendaftaran Event Listener Navigasi
@@ -706,24 +767,38 @@
                 if (currentUser) {
                     showPage(pageId);
                 } else {
-                    showToast('Sila pilih peranan anda dahulu.', true);
+                    // Sepatutnya tidak berlaku jika modal login berfungsi, tetapi sebagai fallback
+                    window.location.reload(); 
                 }
             });
         });
 
         // --- MULA APLIKASI (DOM Content Loaded) ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Cuba muatkan pengguna dari sesi lepas
             const savedUser = localStorage.getItem('sfdgUser');
             if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                setupUIPerRole(currentUser.Jawatan);
-                closeModal('roleModal');
-                showPage('senarai-surat');
-                // Muatkan senarai pelulus di latar belakang
-                loadSignatoriesForForm(); 
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    if (currentUser && currentUser.Nama && currentUser.Jawatan) {
+                        setupUIPerRole(currentUser.Jawatan);
+                        closeModal('roleModal');
+                        showPage('senarai-surat'); 
+                        loadSignatoriesForForm(); // Muat senarai pelulus
+                    } else {
+                         // Data pengguna tidak sah, paksa login semula
+                        localStorage.removeItem('sfdgUser');
+                        showModal('roleModal');
+                        loadUsersForLogin();
+                        loadSignatoriesForForm();
+                    }
+                } catch (e) {
+                     // Ralat parse JSON, paksa login semula
+                    localStorage.removeItem('sfdgUser');
+                    showModal('roleModal');
+                    loadUsersForLogin();
+                    loadSignatoriesForForm();
+                }
             } else {
-                // Jika tiada pengguna, tunjukkan modal login dan muatkan data
                 showModal('roleModal');
                 loadUsersForLogin();
                 loadSignatoriesForForm();
